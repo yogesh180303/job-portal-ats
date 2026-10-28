@@ -1,78 +1,35 @@
-# Job Portal & Applicant Tracking System
+﻿# Job Portal & Applicant Tracking System
 
-A full-stack recruitment platform built with React.js, Django REST
-Framework, and MySQL.
-
-## Project Overview
-
-The platform connects candidates, recruiters, and administrators.
-
-### Candidate Features
-
-- Account registration and authentication
-- Candidate profile and resume management
-- Job search and filtering
-- Job applications and application tracking
-- Application status notifications
-
-### Recruiter Features
-
-- Recruiter profiles
-- Job creation and management
-- Applicant review
-- Application status management
-- Recruitment statistics
-
-### Admin Features
-
-- User and account management
-- Job listing moderation
-- Platform statistics
+A full-stack recruitment platform built using React.js, Django REST Framework, and SQLite.
 
 ## Technology Stack
 
-### Frontend
+- Frontend: React.js, Vite, JavaScript, React Router, Axios
+- Backend: Python, Django, Django REST Framework
+- Database: SQLite
+- Authentication: JWT
+- API Documentation: Swagger/OpenAPI
+- Testing: Django automated tests and Postman
+- Version Control: Git and GitHub
 
-- React.js
-- Vite
-- JavaScript
-- React Router
-- Axios
-- Bootstrap or custom CSS
+## Main Features
 
-### Backend
-
-- Python
-- Django
-- Django REST Framework
-- Django REST Framework Simple JWT
-- Django CORS Headers
-
-### Database
-
-- MySQL
-
-### Development Tools
-
-- Git and GitHub
-- Visual Studio Code
-- Postman
-- Swagger/OpenAPI
-- Django automated tests
+- Candidate registration, profiles, and resume management
+- Job search, filtering, and applications
+- Recruiter job and applicant management
+- Application status tracking and notifications
+- Administrative management and recruitment statistics
 
 ## Project Structure
 
-```text
-job-portal-ats/
-├── frontend/
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── layouts/
-│       ├── context/
-│       ├── services/
-│       ├── hooks/
-│       └── utils/
-├── backend/
-├── .gitignore
-└── README.md
+- frontend/: React application
+- backend/: Django REST API
+
+## Security
+
+Keep secrets in environment variables. Never commit credentials,
+private resumes, or production secrets.
+
+## Project Status
+
+Environment and repository setup.
