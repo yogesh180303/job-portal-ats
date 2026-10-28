@@ -121,3 +121,7 @@ private-media/
 # ==========================================
 *.tmp
 *.temp
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
