@@ -1,5 +1,7 @@
-
 import { useState } from 'react'
+import { Link, Route, Routes } from 'react-router-dom'
+import Login from './Login.jsx'
+import Register from './Register.jsx'
 import './App.css'
 
 const sampleJobs = [
@@ -32,6 +34,8 @@ const sampleJobs = [
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
 
+  // Keep the existing filteredJobs logic below this line.
+
   const filteredJobs = sampleJobs.filter((job) => {
     const searchText = searchTerm.toLowerCase().trim()
 
@@ -44,7 +48,13 @@ function App() {
   })
 
   return (
-    <div className="app">
+  <Routes>
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route
+      path="/"
+      element={
+        <div className="app">
       <header className="navbar">
         <a className="brand" href="#" aria-label="CareerHub home">
           <span className="brand-icon">C</span>
@@ -57,13 +67,13 @@ function App() {
         </nav>
 
         <div className="nav-actions">
-          <button className="button button-outline" type="button">
-            Sign in
-          </button>
-          <button className="button button-primary" type="button">
-            Register
-          </button>
-        </div>
+  <Link className="button button-outline" to="/login">
+    Sign in
+  </Link>
+  <Link className="button button-primary" to="/register">
+    Register
+  </Link>
+</div>
       </header>
 
       <main>
@@ -160,8 +170,11 @@ function App() {
           <span>CareerHub</span>
         </a>
         <p>Connecting people with opportunities.</p>
-      </footer>
-    </div>
+              </footer>
+      </div>
+      }
+    />
+  </Routes>
   )
 }
 
