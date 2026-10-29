@@ -1,121 +1,146 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+
+
 import './App.css'
 
+const sampleJobs = [
+  {
+    id: 1,
+    title: 'Software Developer',
+    company: 'Tech Solutions',
+    location: 'Pune, India',
+    type: 'Full-time',
+    category: 'Technology',
+  },
+  {
+    id: 2,
+    title: 'Data Analyst',
+    company: 'Insight Analytics',
+    location: 'Remote, India',
+    type: 'Full-time',
+    category: 'Analytics',
+  },
+  {
+    id: 3,
+    title: 'Frontend Developer',
+    company: 'Digital Labs',
+    location: 'Bengaluru, India',
+    type: 'Internship',
+    category: 'Technology',
+  },
+]
+
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="navbar">
+        <a className="brand" href="#" aria-label="CareerHub home">
+          <span className="brand-icon">C</span>
+          <span>CareerHub</span>
+        </a>
+
+        <nav className="nav-links" aria-label="Main navigation">
+          <a href="#jobs">Find jobs</a>
+          <a href="#about">About</a>
+        </nav>
+
+        <div className="nav-actions">
+          <button className="button button-outline" type="button">
+            Sign in
+          </button>
+          <button className="button button-primary" type="button">
+            Register
+          </button>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+      </header>
+
+      <main>
+        <section className="hero">
+          <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
+          <h1>
+            Find work that
+            <br />
+            <span>moves you forward.</span>
+          </h1>
+          <p className="hero-description">
+            Discover opportunities, explore companies, and take
+            the next step in your career.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+          <form
+            className="search-form"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <label className="search-field">
+              <span className="search-symbol" aria-hidden="true">
+                ⌕
+              </span>
+              <input
+                type="search"
+                placeholder="Job title, skill, or company"
+                aria-label="Search jobs"
+              />
+            </label>
+            <button className="button button-primary search-button" type="submit">
+              Search jobs
+            </button>
+          </form>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <p className="search-hint">
+            Popular searches: <span>React</span> <span>Python</span>{' '}
+            <span>Data Analyst</span>
+          </p>
+        </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <section className="jobs-section" id="jobs">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">CAREER OPPORTUNITIES</span>
+              <h2>Explore sample jobs</h2>
+              <p>Get a preview of opportunities you can discover here.</p>
+            </div>
+            <span className="job-count">{sampleJobs.length} examples</span>
+          </div>
+
+          <div className="job-grid">
+            {sampleJobs.map((job) => (
+              <article className="job-card" key={job.id}>
+                <div className="company-icon" aria-hidden="true">
+                  {job.company.charAt(0)}
+                </div>
+                <span className="job-category">{job.category}</span>
+                <h3>{job.title}</h3>
+                <p className="company-name">{job.company}</p>
+                <div className="job-meta">
+                  <span>{job.location}</span>
+                  <span>{job.type}</span>
+                </div>
+                <button className="job-link" type="button">
+                  View details <span aria-hidden="true">→</span>
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="about-section" id="about">
+          <span className="eyebrow">BUILT FOR YOUR NEXT STEP</span>
+          <h2>Your career journey starts here.</h2>
+          <p>
+            CareerHub is the foundation for our Job Portal and
+            Applicant Tracking System. More features will be added
+            as we build the project.
+          </p>
+        </section>
+      </main>
+
+      <footer className="footer">
+        <a className="brand footer-brand" href="#">
+          <span className="brand-icon">C</span>
+          <span>CareerHub</span>
+        </a>
+        <p>Connecting people with opportunities.</p>
+      </footer>
+    </div>
   )
 }
 
