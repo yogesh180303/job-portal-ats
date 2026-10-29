@@ -44,8 +44,8 @@ function Login() {
         </form>
 
         <p className="auth-switch">
-         New to CareerHub? <Link to="/register">Create an account</Link>
-        </p>
+  New to CareerHub? <Link to="/register">Create an account</Link>
+</p>
       </section>
     </main>
   )
