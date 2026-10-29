@@ -1,5 +1,5 @@
 
-
+import { useState } from 'react'
 import './App.css'
 
 const sampleJobs = [
@@ -30,6 +30,19 @@ const sampleJobs = [
 ]
 
 function App() {
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredJobs = sampleJobs.filter((job) => {
+    const searchText = searchTerm.toLowerCase().trim()
+
+    return (
+      job.title.toLowerCase().includes(searchText) ||
+      job.company.toLowerCase().includes(searchText) ||
+      job.location.toLowerCase().includes(searchText) ||
+      job.category.toLowerCase().includes(searchText)
+    )
+  })
+
   return (
     <div className="app">
       <header className="navbar">
@@ -75,10 +88,12 @@ function App() {
                 ⌕
               </span>
               <input
-                type="search"
-                placeholder="Job title, skill, or company"
-                aria-label="Search jobs"
-              />
+  type="search"
+  placeholder="Job title, skill, or company"
+  aria-label="Search jobs"
+  value={searchTerm}
+  onChange={(event) => setSearchTerm(event.target.value)}
+/>
             </label>
             <button className="button button-primary search-button" type="submit">
               Search jobs
@@ -102,8 +117,9 @@ function App() {
           </div>
 
           <div className="job-grid">
-            {sampleJobs.map((job) => (
-              <article className="job-card" key={job.id}>
+  {filteredJobs.length > 0 ? (
+    filteredJobs.map((job) => (
+      <article className="job-card" key={job.id}>
                 <div className="company-icon" aria-hidden="true">
                   {job.company.charAt(0)}
                 </div>
@@ -117,9 +133,14 @@ function App() {
                 <button className="job-link" type="button">
                   View details <span aria-hidden="true">→</span>
                 </button>
-              </article>
-            ))}
-          </div>
+                    </article>
+    ))
+  ) : (
+    <p className="no-jobs">
+      No jobs found. Try another job title, company, or location.
+    </p>
+  )}
+</div>
         </section>
 
         <section className="about-section" id="about">
