@@ -1,8 +1,13 @@
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import CandidateRegistrationSerializer
+from .serializers import (
+    CandidateRegistrationSerializer,
+    EmailTokenObtainPairSerializer,
+)
 
 
 @api_view(["GET"])
@@ -37,3 +42,7 @@ def candidate_register(request):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST,
     )
+
+
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer

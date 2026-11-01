@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -25,3 +26,35 @@ class CandidateRegistrationSerializer(serializers.ModelSerializer):
             role=User.Role.CANDIDATE,
         )
         return user
+    
+    
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = "email"
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                {"detail": "Invalid email or password."}
+            )
+
+        if not user.check_password(password):
+            raise serializers.ValidationError(
+                {"detail": "Invalid email or password."}
+            )
+
+        if not user.is_active:
+            raise serializers.ValidationError(
+                {"detail": "This account is inactive."}
+            )
+
+        refresh = self.get_token(user)
+
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
