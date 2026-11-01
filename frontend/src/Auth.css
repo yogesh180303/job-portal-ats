@@ -112,3 +112,17 @@
     font-size: 26px;
   }
 }
+.form-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.form-error {
+  color: #f87171;
+}
+
+.form-success {
+  color: #4ade80;
+}
