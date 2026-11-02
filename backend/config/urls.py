@@ -6,6 +6,7 @@ from accounts.views import (
     health_check,
     candidate_register,
     EmailTokenObtainPairView,
+    user_profile,
 )
 
 
@@ -34,5 +35,11 @@ urlpatterns = [
         "api/auth/token/refresh/",
         TokenRefreshView.as_view(),
         name="token-refresh",
+    ),
+
+    path(
+        "api/auth/me/",
+        user_profile,
+        name="user-profile",
     ),
 ]

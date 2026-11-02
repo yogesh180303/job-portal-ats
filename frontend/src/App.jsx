@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import Login from './Login.jsx'
 import Register from './Register.jsx'
+import Dashboard from "./Dashboard";
 import './App.css'
 
 const sampleJobs = [
@@ -51,6 +52,7 @@ function App() {
   <Routes>
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/dashboard" element={<Dashboard />} />
     <Route
       path="/"
       element={

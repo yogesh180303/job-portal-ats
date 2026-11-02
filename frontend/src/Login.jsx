@@ -1,9 +1,11 @@
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from "react-router-dom";
 import './Auth.css'
 
 function Login() {
+  const navigate = useNavigate();
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -46,8 +48,8 @@ function Login() {
       sessionStorage.setItem('accessToken', data.access)
       sessionStorage.setItem('refreshToken', data.refresh)
 
-      setSuccessMessage('Login successful! Welcome back.')
-      form.reset()
+      navigate("/dashboard");
+
     } catch (error) {
       setErrorMessage(error.message)
     } finally {
