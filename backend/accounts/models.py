@@ -1,3 +1,4 @@
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -37,8 +38,8 @@ class CandidateProfile(models.Model):
 
     def __str__(self):
         return f"{self.full_name or self.user.username}'s Profile"
-    
-    
+
+
 class Education(models.Model):
     profile = models.ForeignKey(
         CandidateProfile,
@@ -52,7 +53,6 @@ class Education(models.Model):
 
     start_year = models.PositiveIntegerField()
     graduation_year = models.PositiveIntegerField()
-
     grade = models.CharField(max_length=50, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -60,3 +60,42 @@ class Education(models.Model):
 
     def __str__(self):
         return f"{self.degree} - {self.institution}"
+
+
+class WorkExperience(models.Model):
+    class EmploymentType(models.TextChoices):
+        FULL_TIME = "FULL_TIME", "Full-time"
+        PART_TIME = "PART_TIME", "Part-time"
+        INTERNSHIP = "INTERNSHIP", "Internship"
+        CONTRACT = "CONTRACT", "Contract"
+        FREELANCE = "FREELANCE", "Freelance"
+
+    profile = models.ForeignKey(
+        CandidateProfile,
+        on_delete=models.CASCADE,
+        related_name="work_experiences",
+    )
+
+    job_title = models.CharField(max_length=150)
+    company = models.CharField(max_length=200)
+
+    employment_type = models.CharField(
+        max_length=20,
+        choices=EmploymentType.choices,
+        default=EmploymentType.FULL_TIME,
+    )
+
+    location = models.CharField(max_length=150, blank=True)
+
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+
+    currently_working = models.BooleanField(default=False)
+
+    description = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company}"

@@ -1,0 +1,172 @@
+
+.experience-section {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: #f4f7fb;
+}
+
+.experience-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.experience-header {
+  margin-bottom: 25px;
+}
+
+.experience-header h2 {
+  color: #14213d;
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.experience-header p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.experience-card {
+  background: #ffffff;
+  padding: 28px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+}
+
+.experience-card h3 {
+  color: #14213d;
+  font-size: 21px;
+  margin-bottom: 22px;
+}
+
+.experience-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.experience-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.experience-field label {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.experience-field input,
+.experience-field select,
+.experience-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #1e293b;
+  box-sizing: border-box;
+}
+
+.experience-field input:focus,
+.experience-field select:focus,
+.experience-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.experience-field textarea {
+  resize: vertical;
+}
+
+.experience-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.experience-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.experience-checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.experience-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.experience-item {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.experience-item h4 {
+  color: #14213d;
+  font-size: 19px;
+  margin-bottom: 8px;
+}
+
+.experience-item p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.experience-item p:first-of-type {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.experience-form .button {
+  align-self: flex-start;
+}
+
+.experience-actions .button {
+  min-width: 90px;
+}
+
+@media (max-width: 600px) {
+  .experience-section {
+    padding: 25px 14px;
+  }
+
+  .experience-card {
+    padding: 20px;
+  }
+
+  .experience-row {
+    grid-template-columns: 1fr;
+  }
+
+  .experience-header h2 {
+    font-size: 25px;
+  }
+
+  .experience-actions {
+    flex-wrap: wrap;
+  }
+}

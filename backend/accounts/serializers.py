@@ -1,6 +1,9 @@
+
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+from .models import CandidateProfile, Education, WorkExperience
 
 
 User = get_user_model()
@@ -26,8 +29,8 @@ class CandidateRegistrationSerializer(serializers.ModelSerializer):
             role=User.Role.CANDIDATE,
         )
         return user
-    
-    
+
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"
 
@@ -58,16 +61,16 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
-from rest_framework import serializers
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "role"]
+
+
 class CandidateProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        from .models import CandidateProfile
-
         model = CandidateProfile
         fields = [
             "id",
@@ -80,9 +83,6 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-        
-        
-from .models import Education
 
 
 class EducationSerializer(serializers.ModelSerializer):
@@ -96,6 +96,25 @@ class EducationSerializer(serializers.ModelSerializer):
             "start_year",
             "graduation_year",
             "grade",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class WorkExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkExperience
+        fields = [
+            "id",
+            "job_title",
+            "company",
+            "employment_type",
+            "location",
+            "start_date",
+            "end_date",
+            "currently_working",
+            "description",
             "created_at",
             "updated_at",
         ]
