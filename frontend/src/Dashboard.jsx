@@ -133,6 +133,17 @@ function Dashboard() {
           </article>
         </section>
 
+        <article className="dashboard-card">
+  <div className="dashboard-icon">💻</div>
+  <h2>My Skills</h2>
+  <p>
+    Add, update, and manage your technical and professional skills.
+  </p>
+  <Link to="/skills" className="button button-primary">
+    Manage Skills
+  </Link>
+</article>
+
         <section className="dashboard-card dashboard-profile">
           <h2>Account Information</h2>
 

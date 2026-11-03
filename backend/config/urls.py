@@ -13,6 +13,8 @@ from accounts.views import (
     education_detail,
     experience_list_create,
     experience_detail,
+        skill_list_create,
+    skill_detail,
 )
 
 
@@ -77,5 +79,16 @@ urlpatterns = [
         "api/experience/<int:pk>/",
         experience_detail,
         name="experience-detail",
+    ),
+        path(
+        "api/skills/",
+        skill_list_create,
+        name="skill-list-create",
+    ),
+
+    path(
+        "api/skills/<int:pk>/",
+        skill_detail,
+        name="skill-detail",
     ),
 ]

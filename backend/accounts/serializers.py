@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import CandidateProfile, Education, WorkExperience
+from .models import CandidateProfile, Education, WorkExperience, Skill
 
 
 User = get_user_model()
@@ -119,3 +119,19 @@ class WorkExperienceSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+        
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = [
+            "id",
+            "name",
+            "proficiency",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_name(self, value):
+        return value.strip()
+

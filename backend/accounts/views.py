@@ -12,6 +12,7 @@ from .serializers import (
     CandidateProfileSerializer,
     EducationSerializer,
     WorkExperienceSerializer,
+        SkillSerializer,
 )
 
 
@@ -239,3 +240,87 @@ def experience_detail(request, pk):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST,
     )
+    
+# Skills APIs
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def skill_list_create(request):
+    from .models import CandidateProfile, Skill
+
+    profile, created = CandidateProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    if request.method == "GET":
+        skills = Skill.objects.filter(
+            profile=profile
+        )
+
+        serializer = SkillSerializer(skills, many=True)
+        return Response(serializer.data)
+
+    serializer = SkillSerializer(data=request.data)
+
+    if serializer.is_valid():
+        try:
+            serializer.save(profile=profile)
+        except Exception:
+            return Response(
+                {"name": ["You have already added this skill."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@api_view(["PUT", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def skill_detail(request, pk):
+    from .models import CandidateProfile, Skill
+
+    try:
+        profile = CandidateProfile.objects.get(user=request.user)
+
+        skill = Skill.objects.get(
+            pk=pk,
+            profile=profile,
+        )
+
+    except (CandidateProfile.DoesNotExist, Skill.DoesNotExist):
+        return Response(
+            {"detail": "Skill not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.method == "DELETE":
+        skill.delete()
+
+        return Response(
+            {"message": "Skill deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    serializer = SkillSerializer(
+        skill,
+        data=request.data,
+        partial=(request.method == "PATCH"),
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
