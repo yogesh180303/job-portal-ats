@@ -1,4 +1,5 @@
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -15,7 +16,10 @@ from accounts.views import (
     experience_detail,
         skill_list_create,
     skill_detail,
+    resume_list_create,
+    resume_detail,
 )
+
 
 
 urlpatterns = [
@@ -80,7 +84,8 @@ urlpatterns = [
         experience_detail,
         name="experience-detail",
     ),
-        path(
+
+    path(
         "api/skills/",
         skill_list_create,
         name="skill-list-create",
@@ -91,4 +96,22 @@ urlpatterns = [
         skill_detail,
         name="skill-detail",
     ),
+
+    path(
+        "api/resumes/",
+        resume_list_create,
+        name="resume-list-create",
+    ),
+
+    path(
+        "api/resumes/<int:pk>/",
+        resume_detail,
+        name="resume-detail",
+    ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )

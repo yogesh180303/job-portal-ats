@@ -144,6 +144,17 @@ function Dashboard() {
   </Link>
 </article>
 
+<article className="dashboard-card">
+  <div className="dashboard-icon">📄</div>
+  <h2>My Resumes</h2>
+  <p>
+    Upload, view, download, and manage your professional resumes.
+  </p>
+  <Link to="/resumes" className="button button-primary">
+    Manage Resumes
+  </Link>
+</article>
+
         <section className="dashboard-card dashboard-profile">
           <h2>Account Information</h2>
 

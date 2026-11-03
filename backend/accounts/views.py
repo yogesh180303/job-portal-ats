@@ -12,7 +12,8 @@ from .serializers import (
     CandidateProfileSerializer,
     EducationSerializer,
     WorkExperienceSerializer,
-        SkillSerializer,
+    SkillSerializer,
+    ResumeSerializer,
 )
 
 
@@ -323,4 +324,109 @@ def skill_detail(request, pk):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST,
     )
+# Resume APIs
 
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def resume_list_create(request):
+    from .models import CandidateProfile, Resume
+
+    profile, created = CandidateProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    if request.method == "GET":
+        resumes = Resume.objects.filter(
+            profile=profile
+        ).order_by("-created_at")
+
+        serializer = ResumeSerializer(
+            resumes,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data)
+
+    uploaded_file = request.FILES.get("file")
+
+    if not uploaded_file:
+        return Response(
+            {"file": ["Please upload a resume file."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    allowed_extensions = [".pdf", ".docx"]
+    file_name = uploaded_file.name.lower()
+
+    if not any(file_name.endswith(ext) for ext in allowed_extensions):
+        return Response(
+            {"file": ["Only PDF and DOCX files are allowed."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if uploaded_file.size > 5 * 1024 * 1024:
+        return Response(
+            {"file": ["File size must not exceed 5 MB."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    title = request.data.get("title", "").strip()
+
+    if not title:
+        return Response(
+            {"title": ["Resume title is required."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    is_primary = request.data.get("is_primary", "false").lower() == "true"
+
+    if is_primary:
+        Resume.objects.filter(
+            profile=profile,
+            is_primary=True,
+        ).update(is_primary=False)
+
+    resume = Resume.objects.create(
+        profile=profile,
+        title=title,
+        file=uploaded_file,
+        is_primary=is_primary,
+    )
+
+    serializer = ResumeSerializer(
+        resume,
+        context={"request": request},
+    )
+
+    return Response(
+        serializer.data,
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def resume_detail(request, pk):
+    from .models import CandidateProfile, Resume
+
+    try:
+        profile = CandidateProfile.objects.get(user=request.user)
+
+        resume = Resume.objects.get(
+            pk=pk,
+            profile=profile,
+        )
+
+    except (CandidateProfile.DoesNotExist, Resume.DoesNotExist):
+        return Response(
+            {"detail": "Resume not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+        resume.file.delete(save=False)
+    resume.delete()
+
+    return Response(
+        {"message": "Resume deleted successfully."},
+        status=status.HTTP_200_OK,
+    )
