@@ -37,3 +37,26 @@ class CandidateProfile(models.Model):
 
     def __str__(self):
         return f"{self.full_name or self.user.username}'s Profile"
+    
+    
+class Education(models.Model):
+    profile = models.ForeignKey(
+        CandidateProfile,
+        on_delete=models.CASCADE,
+        related_name="educations",
+    )
+
+    degree = models.CharField(max_length=150)
+    institution = models.CharField(max_length=200)
+    field_of_study = models.CharField(max_length=150, blank=True)
+
+    start_year = models.PositiveIntegerField()
+    graduation_year = models.PositiveIntegerField()
+
+    grade = models.CharField(max_length=50, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.degree} - {self.institution}"

@@ -10,6 +10,7 @@ from .serializers import (
     EmailTokenObtainPairSerializer,
     UserProfileSerializer,
     CandidateProfileSerializer,
+    EducationSerializer,
 )
 
 
@@ -71,6 +72,74 @@ def candidate_profile(request):
 
     serializer = CandidateProfileSerializer(
         profile,
+        data=request.data,
+        partial=(request.method == "PATCH"),
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+    
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def education_list_create(request):
+    from .models import CandidateProfile, Education
+
+    profile, created = CandidateProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    if request.method == "GET":
+        educations = Education.objects.filter(profile=profile).order_by("-start_year")
+        serializer = EducationSerializer(educations, many=True)
+        return Response(serializer.data)
+
+    serializer = EducationSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(profile=profile)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@api_view(["PUT", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def education_detail(request, pk):
+    from .models import CandidateProfile, Education
+
+    try:
+        profile = CandidateProfile.objects.get(user=request.user)
+        education = Education.objects.get(
+            pk=pk,
+            profile=profile,
+        )
+    except (CandidateProfile.DoesNotExist, Education.DoesNotExist):
+        return Response(
+            {"detail": "Education record not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.method == "DELETE":
+        education.delete()
+        return Response(
+            {"message": "Education record deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    serializer = EducationSerializer(
+        education,
         data=request.data,
         partial=(request.method == "PATCH"),
     )

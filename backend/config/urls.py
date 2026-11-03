@@ -8,6 +8,8 @@ from accounts.views import (
     EmailTokenObtainPairView,
     user_profile,
     candidate_profile,
+    education_list_create,
+    education_detail,
 )
 
 
@@ -49,4 +51,15 @@ urlpatterns = [
     candidate_profile,
     name="candidate-profile",
 ),
+        path(
+        "api/education/",
+        education_list_create,
+        name="education-list-create",
+    ),
+
+    path(
+        "api/education/<int:pk>/",
+        education_detail,
+        name="education-detail",
+    ),
 ]

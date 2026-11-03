@@ -4,6 +4,7 @@ import Login from './Login.jsx'
 import Register from './Register.jsx'
 import Dashboard from "./Dashboard";
 import CandidateProfile from "./CandidateProfile";
+import Education from "./Education";
 import './App.css'
 
 const sampleJobs = [
@@ -55,6 +56,7 @@ function App() {
     <Route path="/register" element={<Register />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/profile" element={<CandidateProfile />} />
+    <Route path="/education" element={<Education />} />
     <Route
       path="/"
       element={

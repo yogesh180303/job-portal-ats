@@ -1,0 +1,156 @@
+
+.education-section {
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.education-container {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.education-header {
+  margin-bottom: 25px;
+}
+
+.education-header h2 {
+  color: #ffffff;
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.education-header p {
+  color: #aab8d0;
+}
+
+.education-card {
+  background: #111c35;
+  border: 1px solid #263858;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 25px;
+}
+
+.education-card h3 {
+  color: #ffffff;
+  margin-bottom: 22px;
+}
+
+.education-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.education-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.education-field label {
+  color: #dce6f7;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.education-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #34496c;
+  border-radius: 8px;
+  background: #0b1428;
+  color: #ffffff;
+  font-size: 15px;
+  outline: none;
+}
+
+.education-field input:focus {
+  border-color: #568cff;
+}
+
+.education-field input::placeholder {
+  color: #71819d;
+}
+
+.education-row {
+  display: flex;
+  gap: 18px;
+}
+
+.education-form button {
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+  .education-section {
+    padding: 25px 14px;
+  }
+
+  .education-card {
+    padding: 20px;
+  }
+
+  .education-row {
+    flex-direction: column;
+  }
+
+  .education-form button {
+    width: 100%;
+  }
+}
+
+.education-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.education-item {
+  padding: 18px;
+  background: #0b1428;
+  border: 1px solid #263858;
+  border-radius: 10px;
+}
+
+.education-item h4 {
+  color: #ffffff;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.education-item p {
+  color: #aab8d0;
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.education-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.education-actions button {
+  padding: 9px 18px;
+  cursor: pointer;
+}
+
+.education-actions .button-danger {
+  background: #dc3545;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+}
+
+.education-actions .button-danger:hover {
+  background: #b02a37;
+}
+
+@media (max-width: 600px) {
+  .education-actions button {
+    flex: 1;
+  }
+}
