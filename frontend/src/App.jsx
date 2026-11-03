@@ -3,6 +3,7 @@ import { Link, Route, Routes } from 'react-router-dom'
 import Login from './Login.jsx'
 import Register from './Register.jsx'
 import Dashboard from "./Dashboard";
+import CandidateProfile from "./CandidateProfile";
 import './App.css'
 
 const sampleJobs = [
@@ -53,6 +54,7 @@ function App() {
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/profile" element={<CandidateProfile />} />
     <Route
       path="/"
       element={

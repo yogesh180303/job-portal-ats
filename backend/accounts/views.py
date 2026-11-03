@@ -5,11 +5,11 @@ from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from .serializers import UserProfileSerializer
-
 from .serializers import (
     CandidateRegistrationSerializer,
     EmailTokenObtainPairSerializer,
+    UserProfileSerializer,
+    CandidateProfileSerializer,
 )
 
 
@@ -55,3 +55,31 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 def user_profile(request):
     serializer = UserProfileSerializer(request.user)
     return Response(serializer.data)
+
+@api_view(["GET", "PUT", "PATCH"])
+@permission_classes([IsAuthenticated])
+def candidate_profile(request):
+    from .models import CandidateProfile
+
+    profile, created = CandidateProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    if request.method == "GET":
+        serializer = CandidateProfileSerializer(profile)
+        return Response(serializer.data)
+
+    serializer = CandidateProfileSerializer(
+        profile,
+        data=request.data,
+        partial=(request.method == "PATCH"),
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )

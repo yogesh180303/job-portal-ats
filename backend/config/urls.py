@@ -7,6 +7,7 @@ from accounts.views import (
     candidate_register,
     EmailTokenObtainPairView,
     user_profile,
+    candidate_profile,
 )
 
 
@@ -42,4 +43,10 @@ urlpatterns = [
         user_profile,
         name="user-profile",
     ),
+    
+    path(
+    "api/auth/profile/",
+    candidate_profile,
+    name="candidate-profile",
+),
 ]
