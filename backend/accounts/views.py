@@ -563,6 +563,28 @@ def application_list_create(request):
                 job__recruiter=request.user
             )
 
+            # Phase 10: Filter recruiter applications by status.
+            application_status = request.query_params.get("status")
+
+            if application_status:
+                valid_statuses = [
+                    choice[0]
+                    for choice in Application.Status.choices
+                ]
+
+                if application_status not in valid_statuses:
+                    return Response(
+                        {
+                            "detail": "Invalid application status.",
+                            "valid_statuses": valid_statuses,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                applications = applications.filter(
+                    status=application_status
+                )
+
         elif request.user.role == "ADMIN":
             applications = Application.objects.all()
 
@@ -604,20 +626,17 @@ def application_list_create(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Create the application.
     application, created = Application.objects.get_or_create(
         candidate=request.user,
         job=job,
     )
 
-    # Prevent duplicate applications.
     if not created:
         return Response(
             {"detail": "You have already applied for this job."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Save the initial application status in timeline.
     ApplicationStatusHistory.objects.create(
         application=application,
         old_status="",
@@ -682,7 +701,6 @@ def application_detail(request, pk):
             status=status.HTTP_200_OK,
         )
 
-    # Only the job's recruiter or admin can update status.
     if not (is_recruiter or is_admin):
         return Response(
             {"detail": "You cannot update this application."},
@@ -704,7 +722,6 @@ def application_detail(request, pk):
 
     old_status = application.status
 
-    # Record history only when status actually changes.
     if old_status != new_status:
         ApplicationStatusHistory.objects.create(
             application=application,
@@ -719,7 +736,6 @@ def application_detail(request, pk):
     serializer = ApplicationSerializer(application)
 
     return Response(serializer.data)
-
 
 
 # Application Timeline API
@@ -767,6 +783,7 @@ def application_timeline(request, pk):
 
     return Response(serializer.data)
 
+
 # ATS Resume Evaluation API
 
 @api_view(["GET"])
@@ -776,7 +793,6 @@ def application_ats_evaluation(request, pk):
     from .resume_parser import extract_resume_text
     from .ats_evaluator import evaluate_resume
 
-    # Only recruiters and admins can evaluate applications.
     if request.user.role not in ["RECRUITER", "ADMIN"]:
         return Response(
             {"detail": "Only recruiters and admins can evaluate resumes."},
@@ -795,7 +811,6 @@ def application_ats_evaluation(request, pk):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Recruiters can evaluate applicants only for their own jobs.
     if (
         request.user.role == "RECRUITER"
         and application.job.recruiter_id != request.user.id
@@ -805,13 +820,11 @@ def application_ats_evaluation(request, pk):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Find the candidate's primary resume.
     resume = Resume.objects.filter(
         profile__user=application.candidate,
         is_primary=True,
     ).first()
 
-    # If there is no primary resume, use the latest uploaded resume.
     if not resume:
         resume = Resume.objects.filter(
             profile__user=application.candidate,

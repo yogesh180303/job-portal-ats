@@ -494,3 +494,35 @@
     padding: 15px;
   }
 }
+
+/* Phase 10: Applicant status filter */
+.applicants-filter {
+  margin: 25px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+}
+
+.applicants-filter label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.applicants-filter select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+}
+
+.applicants-filter select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
