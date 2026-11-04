@@ -27,6 +27,8 @@ function Jobs() {
 
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [applyingJobId, setApplyingJobId] = useState(null);
+const [appliedJobIds, setAppliedJobIds] = useState([]);
 
   const token = sessionStorage.getItem("accessToken");
 
@@ -224,6 +226,38 @@ function Jobs() {
       setErrorMessage(error.message);
     }
   };
+
+  const handleApply = async (jobId) => {
+  setMessage("");
+  setErrorMessage("");
+  setApplyingJobId(jobId);
+
+  try {
+    const response = await fetch(`${API_URL}/applications/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ job: jobId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail || "Unable to apply for this job."
+      );
+    }
+
+    setAppliedJobIds((previous) => [...previous, jobId]);
+    setMessage("Your application was submitted successfully.");
+  } catch (error) {
+    setErrorMessage(error.message);
+  } finally {
+    setApplyingJobId(null);
+  }
+};
 
   const handleStatusChange = async (job, newStatus) => {
     setMessage("");
@@ -568,6 +602,26 @@ function Jobs() {
                   <span className="job-recruiter">
                     Posted by: {job.recruiter_name}
                   </span>
+
+                  {user.role === "CANDIDATE" && job.status === "PUBLISHED" && (
+  <div className="job-actions">
+    <button
+      className="button button-primary"
+      type="button"
+      onClick={() => handleApply(job.id)}
+      disabled={
+        applyingJobId === job.id ||
+        appliedJobIds.includes(job.id)
+      }
+    >
+      {applyingJobId === job.id
+        ? "Applying..."
+        : appliedJobIds.includes(job.id)
+          ? "Applied"
+          : "Apply Now"}
+    </button>
+  </div>
+)}
 
                   {canManageJob(job) && (
                     <div className="job-actions">

@@ -9,6 +9,8 @@ import WorkExperience from "./WorkExperience";
 import Skills from "./Skills";
 import Resumes from "./Resumes";
 import Jobs from "./Jobs";
+import Applications from "./Applications";
+import Applicants from "./Applicants";
 import './App.css'
 
 const sampleJobs = [
@@ -65,6 +67,8 @@ function App() {
     <Route path="/skills" element={<Skills />} />
 <Route path="/resumes" element={<Resumes />} />
 <Route path="/jobs" element={<Jobs />} />
+<Route path="/applications" element={<Applications />} />
+<Route path="/applicants" element={<Applicants />} />
     <Route
       path="/"
       element={

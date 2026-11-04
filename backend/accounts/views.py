@@ -16,6 +16,7 @@ from .serializers import (
     SkillSerializer,
     ResumeSerializer,
     JobSerializer,
+    ApplicationSerializer,
 )
 
 
@@ -540,3 +541,165 @@ def job_detail(request, pk):
             {"message": "Job deleted successfully."},
             status=status.HTTP_200_OK,
         )
+        
+        
+# Job Application APIs
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def application_list_create(request):
+    from .models import Application, Job
+
+    # View applications based on user role.
+    if request.method == "GET":
+        if request.user.role == "CANDIDATE":
+            applications = Application.objects.filter(
+                candidate=request.user
+            )
+
+        elif request.user.role == "RECRUITER":
+            applications = Application.objects.filter(
+                job__recruiter=request.user
+            )
+
+        elif request.user.role == "ADMIN":
+            applications = Application.objects.all()
+
+        else:
+            return Response(
+                {"detail": "You do not have permission."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ApplicationSerializer(
+            applications,
+            many=True,
+        )
+        return Response(serializer.data)
+
+    # Only candidates can apply for jobs.
+    if request.user.role != "CANDIDATE":
+        return Response(
+            {"detail": "Only candidates can apply for jobs."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    job_id = request.data.get("job")
+
+    if not job_id:
+        return Response(
+            {"job": ["Job ID is required."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        job = Job.objects.get(
+            pk=job_id,
+            status=Job.Status.PUBLISHED,
+        )
+    except (Job.DoesNotExist, ValueError, TypeError):
+        return Response(
+            {"detail": "Published job not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    application, created = Application.objects.get_or_create(
+        candidate=request.user,
+        job=job,
+    )
+
+    if not created:
+        return Response(
+            {"detail": "You have already applied for this job."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = ApplicationSerializer(application)
+
+    return Response(
+        serializer.data,
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def application_detail(request, pk):
+    from .models import Application
+
+    try:
+        application = Application.objects.get(pk=pk)
+    except Application.DoesNotExist:
+        return Response(
+            {"detail": "Application not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    is_candidate = (
+        request.user.role == "CANDIDATE"
+        and application.candidate_id == request.user.id
+    )
+
+    is_recruiter = (
+        request.user.role == "RECRUITER"
+        and application.job.recruiter_id == request.user.id
+    )
+
+    is_admin = request.user.role == "ADMIN"
+
+    # Check viewing permission.
+    if request.method == "GET":
+        if not (is_candidate or is_recruiter or is_admin):
+            return Response(
+                {"detail": "Application not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ApplicationSerializer(application)
+        return Response(serializer.data)
+
+    # Candidate can withdraw their own application.
+    if request.method == "DELETE":
+        if not is_candidate:
+            return Response(
+                {"detail": "You cannot withdraw this application."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        application.delete()
+
+        return Response(
+            {"message": "Application withdrawn successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    # Only the job's recruiter or admin can update status.
+    if not (is_recruiter or is_admin):
+        return Response(
+            {"detail": "You cannot update this application."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    new_status = request.data.get("status")
+
+    valid_statuses = [
+        choice[0]
+        for choice in Application.Status.choices
+    ]
+
+    if new_status not in valid_statuses:
+        return Response(
+            {
+                "status": [
+                    "Invalid application status."
+                ]
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    application.status = new_status
+    application.save(update_fields=["status", "updated_at"])
+
+    serializer = ApplicationSerializer(application)
+
+    return Response(serializer.data)

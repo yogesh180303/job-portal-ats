@@ -1,0 +1,287 @@
+
+.applicants-page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  color: #1e293b;
+}
+
+.applicants-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 7%;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.applicants-brand {
+  font-size: 25px;
+  font-weight: 800;
+  color: #1e293b;
+  text-decoration: none;
+}
+
+.applicants-brand span {
+  color: #2563eb;
+}
+
+.applicants-back {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.applicants-back:hover {
+  text-decoration: underline;
+}
+
+.applicants-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 55px 24px;
+}
+
+.applicants-heading {
+  margin-bottom: 35px;
+}
+
+.applicants-eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.applicants-heading h1 {
+  margin: 12px 0;
+  font-size: 36px;
+  color: #0f172a;
+}
+
+.applicants-heading p {
+  color: #64748b;
+  font-size: 16px;
+}
+
+.applicants-list {
+  display: grid;
+  gap: 20px;
+}
+
+.applicant-card {
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+.applicant-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.applicant-card-header h2 {
+  margin: 0 0 8px;
+  font-size: 21px;
+  color: #0f172a;
+}
+
+.applicant-card-header p {
+  margin: 0 0 6px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.applicant-company {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.applicant-status {
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.applicant-status.status-applied {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.applicant-status.status-under-review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.applicant-status.status-shortlisted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.applicant-status.status-interview {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.applicant-status.status-selected {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.applicant-status.status-rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.applicant-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 30px;
+  margin: 22px 0;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.applicant-details p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.applicant-details strong {
+  color: #334155;
+}
+
+.applicant-status-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.applicant-status-control label {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.applicant-status-control select {
+  min-width: 190px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.applicant-status-control select:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+.applicant-status-control select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.applicant-updating {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.applicants-empty {
+  padding: 55px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.applicants-empty h2 {
+  color: #0f172a;
+}
+
+.applicants-empty p {
+  margin-bottom: 25px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.applicants-button {
+  display: inline-block;
+  padding: 12px 22px;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 7px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.applicants-button:hover {
+  background: #1d4ed8;
+}
+
+.applicants-message,
+.applicants-error,
+.applicants-success {
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+}
+
+.applicants-message {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.applicants-error {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.applicants-success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+@media (max-width: 600px) {
+  .applicants-navbar {
+    padding: 15px 5%;
+  }
+
+  .applicants-container {
+    padding: 35px 16px;
+  }
+
+  .applicants-heading h1 {
+    font-size: 29px;
+  }
+
+  .applicant-card-header {
+    flex-direction: column;
+  }
+
+  .applicant-details {
+    flex-direction: column;
+  }
+
+  .applicant-status-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .applicant-status-control select {
+    width: 100%;
+  }
+}

@@ -10,6 +10,7 @@ from .models import (
     Skill,
     Resume,
     Job,
+    Application,
 )
 
 
@@ -207,4 +208,47 @@ class JobSerializer(serializers.ModelSerializer):
             )
 
         return data
+    
+    
+class ApplicationSerializer(serializers.ModelSerializer):
+    candidate_name = serializers.CharField(
+        source="candidate.username",
+        read_only=True,
+    )
+
+    job_title = serializers.CharField(
+        source="job.title",
+        read_only=True,
+    )
+
+    company_name = serializers.CharField(
+        source="job.company_name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Application
+        fields = [
+            "id",
+            "candidate",
+            "candidate_name",
+            "job",
+            "job_title",
+            "company_name",
+            "status",
+            "applied_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "candidate",
+            "candidate_name",
+            "job_title",
+            "company_name",
+            "status",
+            "applied_at",
+            "updated_at",
+        ]
+
 

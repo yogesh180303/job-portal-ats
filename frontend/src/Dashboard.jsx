@@ -109,12 +109,15 @@ function Dashboard() {
 
         <section className="dashboard-grid">
           <article className="dashboard-card">
-            <div className="dashboard-icon">📄</div>
-            <h2>My Applications</h2>
-            <p>
-              Track the jobs you have applied for and monitor their status.
-            </p>
-          </article>
+  <div className="dashboard-icon">📄</div>
+  <h2>My Applications</h2>
+  <p>
+    Track the jobs you have applied for and monitor their status.
+  </p>
+  <Link to="/applications" className="button button-primary">
+    View Applications
+  </Link>
+</article>
 
           <article className="dashboard-card">
             <div className="dashboard-icon">⭐</div>
@@ -132,6 +135,19 @@ function Dashboard() {
             </p>
           </article>
         </section>
+
+                {["RECRUITER", "ADMIN"].includes(user.role) && (
+          <article className="dashboard-card">
+            <div className="dashboard-icon">👥</div>
+            <h2>Manage Applicants</h2>
+            <p>
+              Review candidates who applied for your jobs and update their application status.
+            </p>
+            <Link to="/applicants" className="button button-primary">
+              View Applicants
+            </Link>
+          </article>
+        )}
 
         <article className="dashboard-card">
   <div className="dashboard-icon">💻</div>

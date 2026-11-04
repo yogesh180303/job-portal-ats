@@ -1,0 +1,263 @@
+
+.applications-page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  color: #1e293b;
+}
+
+.applications-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 7%;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.applications-brand {
+  font-size: 25px;
+  font-weight: 800;
+  color: #1e293b;
+  text-decoration: none;
+}
+
+.applications-brand span {
+  color: #2563eb;
+}
+
+.applications-back {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.applications-back:hover {
+  text-decoration: underline;
+}
+
+.applications-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 55px 24px;
+}
+
+.applications-heading {
+  margin-bottom: 35px;
+}
+
+.applications-eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.applications-heading h1 {
+  margin: 12px 0;
+  font-size: 36px;
+  color: #0f172a;
+}
+
+.applications-heading p {
+  color: #64748b;
+  font-size: 16px;
+}
+
+.applications-list {
+  display: grid;
+  gap: 20px;
+}
+
+.application-card {
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+.application-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.application-card-header h2 {
+  margin: 0 0 8px;
+  font-size: 21px;
+  color: #0f172a;
+}
+
+.application-card-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.application-status {
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.application-status.applied {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.application-status.under-review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.application-status.shortlisted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.application-status.interview {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.application-status.selected {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.application-status.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.application-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 30px;
+  margin: 22px 0;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.application-details p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.application-details strong {
+  color: #334155;
+}
+
+.application-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.application-withdraw-button {
+  padding: 10px 17px;
+  border: 1px solid #dc2626;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #dc2626;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.application-withdraw-button:hover {
+  background: #fef2f2;
+}
+
+.application-withdraw-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.applications-empty {
+  padding: 55px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.applications-empty h2 {
+  color: #0f172a;
+}
+
+.applications-empty p {
+  margin-bottom: 25px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.applications-button {
+  display: inline-block;
+  padding: 12px 22px;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 7px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.applications-button:hover {
+  background: #1d4ed8;
+}
+
+.applications-message,
+.applications-error,
+.applications-success {
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+}
+
+.applications-message {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.applications-error {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.applications-success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+@media (max-width: 600px) {
+  .applications-navbar {
+    padding: 15px 5%;
+  }
+
+  .applications-container {
+    padding: 35px 16px;
+  }
+
+  .applications-heading h1 {
+    font-size: 29px;
+  }
+
+  .application-card-header {
+    flex-direction: column;
+  }
+
+  .application-details {
+    flex-direction: column;
+  }
+
+  .application-card-actions {
+    justify-content: stretch;
+  }
+
+  .application-withdraw-button {
+    width: 100%;
+  }
+}
