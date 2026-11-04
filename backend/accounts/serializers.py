@@ -3,7 +3,14 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import CandidateProfile, Education, WorkExperience, Skill, Resume
+from .models import (
+    CandidateProfile,
+    Education,
+    WorkExperience,
+    Skill,
+    Resume,
+    Job,
+)
 
 
 User = get_user_model()
@@ -147,4 +154,57 @@ class ResumeSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+class JobSerializer(serializers.ModelSerializer):
+    recruiter_name = serializers.CharField(
+        source="recruiter.username",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Job
+        fields = [
+            "id",
+            "recruiter",
+            "recruiter_name",
+            "title",
+            "company_name",
+            "description",
+            "requirements",
+            "location",
+            "job_type",
+            "salary_min",
+            "salary_max",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "recruiter",
+            "recruiter_name",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate(self, data):
+        salary_min = data.get(
+            "salary_min",
+            getattr(self.instance, "salary_min", None),
+        )
+        salary_max = data.get(
+            "salary_max",
+            getattr(self.instance, "salary_max", None),
+        )
+
+        if (
+            salary_min is not None
+            and salary_max is not None
+            and salary_min > salary_max
+        ):
+            raise serializers.ValidationError(
+                "Minimum salary cannot be greater than maximum salary."
+            )
+
+        return data
 

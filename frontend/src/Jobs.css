@@ -1,0 +1,257 @@
+
+.jobs-section {
+  min-height: 100vh;
+  padding: 55px 24px 80px;
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(37, 99, 235, 0.12),
+      transparent 45%
+    ),
+    var(--bg);
+}
+
+.jobs-container {
+  width: min(1000px, 100%);
+  margin: 0 auto;
+}
+
+.jobs-header {
+  margin-bottom: 30px;
+}
+
+.jobs-header h1 {
+  margin-bottom: 10px;
+  color: var(--heading);
+  font-size: 32px;
+}
+
+.jobs-header p {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.jobs-role {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.15);
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.jobs-card {
+  margin-bottom: 25px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.jobs-card h2 {
+  margin-bottom: 22px;
+  color: var(--heading);
+  font-size: 20px;
+}
+
+.jobs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.jobs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.jobs-field label {
+  color: var(--heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jobs-field input,
+.jobs-field textarea,
+.jobs-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--heading);
+  font: inherit;
+}
+
+.jobs-field textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.jobs-field input:focus,
+.jobs-field textarea:focus,
+.jobs-field select:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.5);
+  outline-offset: 2px;
+}
+
+.jobs-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.jobs-form-actions,
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.jobs-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin: 35px 0 20px;
+}
+
+.jobs-list-header h2 {
+  color: var(--heading);
+  font-size: 23px;
+}
+
+.jobs-list-header span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.job-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.job-item-header h3 {
+  margin-bottom: 7px;
+  color: var(--heading);
+  font-size: 20px;
+}
+
+.job-company {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.job-status {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-published {
+  background: rgba(22, 101, 52, 0.2);
+  color: #86efac;
+}
+
+.status-draft {
+  background: rgba(161, 98, 7, 0.2);
+  color: #fcd34d;
+}
+
+.status-closed {
+  background: rgba(153, 27, 27, 0.2);
+  color: #fca5a5;
+}
+
+.job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 20px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.job-description {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.job-description h4 {
+  margin: 12px 0 7px;
+  color: var(--heading);
+  font-size: 14px;
+}
+
+.job-description p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.job-posted {
+  margin: 18px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.job-actions {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.jobs-message {
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.jobs-success {
+  border: 1px solid #166534;
+  background: rgba(22, 101, 52, 0.15);
+  color: #86efac;
+}
+
+.jobs-error {
+  border: 1px solid #991b1b;
+  background: rgba(153, 27, 27, 0.15);
+  color: #fca5a5;
+}
+
+@media (max-width: 600px) {
+  .jobs-section {
+    padding: 35px 16px 60px;
+  }
+
+  .jobs-card {
+    padding: 20px;
+  }
+
+  .jobs-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .job-item-header {
+    flex-direction: column;
+  }
+
+  .jobs-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

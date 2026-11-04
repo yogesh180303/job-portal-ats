@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
     CandidateRegistrationSerializer,
@@ -14,6 +15,7 @@ from .serializers import (
     WorkExperienceSerializer,
     SkillSerializer,
     ResumeSerializer,
+    JobSerializer,
 )
 
 
@@ -430,3 +432,111 @@ def resume_detail(request, pk):
         {"message": "Resume deleted successfully."},
         status=status.HTTP_200_OK,
     )
+
+# Job Management APIs
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def job_list_create(request):
+    from .models import Job
+
+    if request.method == "GET":
+        if request.user.role == "ADMIN":
+            jobs = Job.objects.all()
+        elif request.user.role == "RECRUITER":
+            from django.db.models import Q
+
+            jobs = Job.objects.filter(
+                Q(status=Job.Status.PUBLISHED)
+                | Q(recruiter=request.user)
+            )
+        else:
+            jobs = Job.objects.filter(
+                status=Job.Status.PUBLISHED
+            )
+
+        serializer = JobSerializer(jobs, many=True)
+        return Response(serializer.data)
+
+    # Only recruiters and admins can create jobs.
+    if request.user.role not in ["RECRUITER", "ADMIN"]:
+        return Response(
+            {"detail": "Only recruiters and admins can create jobs."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    serializer = JobSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(recruiter=request.user)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def job_detail(request, pk):
+    from .models import Job
+
+    try:
+        job = Job.objects.get(pk=pk)
+    except Job.DoesNotExist:
+        return Response(
+            {"detail": "Job not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Check whether the user can view this job.
+    is_admin = request.user.role == "ADMIN"
+    is_owner = job.recruiter_id == request.user.id
+
+    if not is_admin and not is_owner:
+        if (
+            request.user.role != "CANDIDATE"
+            or job.status != Job.Status.PUBLISHED
+        ):
+            return Response(
+                {"detail": "Job not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    if request.method == "GET":
+        serializer = JobSerializer(job)
+        return Response(serializer.data)
+
+    # Only the owner or an admin can modify a job.
+    if not is_admin and not is_owner:
+        return Response(
+            {"detail": "You cannot modify this job."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if request.method in ["PUT", "PATCH"]:
+        serializer = JobSerializer(
+            job,
+            data=request.data,
+            partial=(request.method == "PATCH"),
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if request.method == "DELETE":
+        job.delete()
+        return Response(
+            {"message": "Job deleted successfully."},
+            status=status.HTTP_200_OK,
+        )

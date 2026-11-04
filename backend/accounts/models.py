@@ -150,3 +150,52 @@ class Resume(models.Model):
 
     def __str__(self):
         return self.title
+
+class Job(models.Model):
+    class JobType(models.TextChoices):
+        FULL_TIME = "FULL_TIME", "Full-time"
+        PART_TIME = "PART_TIME", "Part-time"
+        INTERNSHIP = "INTERNSHIP", "Internship"
+        CONTRACT = "CONTRACT", "Contract"
+        REMOTE = "REMOTE", "Remote"
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        PUBLISHED = "PUBLISHED", "Published"
+        CLOSED = "CLOSED", "Closed"
+
+    recruiter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="posted_jobs",
+    )
+
+    title = models.CharField(max_length=200)
+    company_name = models.CharField(max_length=200)
+    description = models.TextField()
+    requirements = models.TextField()
+    location = models.CharField(max_length=200)
+
+    job_type = models.CharField(
+        max_length=20,
+        choices=JobType.choices,
+        default=JobType.FULL_TIME,
+    )
+
+    salary_min = models.PositiveIntegerField(null=True, blank=True)
+    salary_max = models.PositiveIntegerField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} at {self.company_name}"

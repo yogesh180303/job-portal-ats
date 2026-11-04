@@ -14,10 +14,12 @@ from accounts.views import (
     education_detail,
     experience_list_create,
     experience_detail,
-        skill_list_create,
+    skill_list_create,
     skill_detail,
     resume_list_create,
     resume_detail,
+    job_list_create,
+    job_detail,
 )
 
 
@@ -108,6 +110,18 @@ urlpatterns = [
         resume_detail,
         name="resume-detail",
     ),
+    path(
+        "api/jobs/",
+        job_list_create,
+        name="job-list-create",
+    ),
+
+    path(
+        "api/jobs/<int:pk>/",
+        job_detail,
+        name="job-detail",
+    ),
+
 ]
 
 if settings.DEBUG:
