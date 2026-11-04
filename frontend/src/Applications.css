@@ -156,6 +156,23 @@
 .application-card-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.application-timeline-button {
+  padding: 10px 17px;
+  border: 1px solid #2563eb;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.application-timeline-button:hover {
+  background: #eff6ff;
 }
 
 .application-withdraw-button {
@@ -176,6 +193,90 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Application Timeline */
+
+.application-timeline {
+  margin-top: 25px;
+  padding: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  animation: timelineAppear 0.25s ease;
+}
+
+.application-timeline h3 {
+  margin: 0 0 25px;
+  color: #0f172a;
+  font-size: 19px;
+}
+
+.timeline-list {
+  position: relative;
+  padding-left: 8px;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 17px;
+  padding-bottom: 27px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* Vertical line connecting timeline events */
+.timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 15px;
+  bottom: 0;
+  width: 2px;
+  background: #bfdbfe;
+}
+
+.timeline-marker {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border: 3px solid #2563eb;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.timeline-item:last-child .timeline-marker {
+  background: #2563eb;
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-content h4 {
+  margin: 0 0 7px;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.timeline-content p {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.timeline-content span {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* Empty application state */
 
 .applications-empty {
   padding: 55px 25px;
@@ -209,6 +310,8 @@
   background: #1d4ed8;
 }
 
+/* Messages */
+
 .applications-message,
 .applications-error,
 .applications-success {
@@ -232,6 +335,20 @@
   background: #dcfce7;
 }
 
+@keyframes timelineAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+
 @media (max-width: 600px) {
   .applications-navbar {
     padding: 15px 5%;
@@ -245,6 +362,10 @@
     font-size: 29px;
   }
 
+  .application-card {
+    padding: 18px;
+  }
+
   .application-card-header {
     flex-direction: column;
   }
@@ -254,10 +375,15 @@
   }
 
   .application-card-actions {
-    justify-content: stretch;
+    flex-direction: column;
   }
 
+  .application-timeline-button,
   .application-withdraw-button {
     width: 100%;
+  }
+
+  .application-timeline {
+    padding: 18px;
   }
 }

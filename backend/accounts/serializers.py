@@ -11,6 +11,7 @@ from .models import (
     Resume,
     Job,
     Application,
+    ApplicationStatusHistory,
 )
 
 
@@ -250,5 +251,24 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "applied_at",
             "updated_at",
         ]
+
+class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.CharField(
+        source="changed_by.username",
+        read_only=True,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = ApplicationStatusHistory
+        fields = [
+            "id",
+            "old_status",
+            "new_status",
+            "changed_by",
+            "changed_by_name",
+            "changed_at",
+        ]
+        read_only_fields = fields
 
 

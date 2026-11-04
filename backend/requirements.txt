@@ -16,3 +16,6 @@ rpds-py==2026.9.1
 sqlparse==0.6.0
 tzdata==2026.6
 uritemplate==4.2.0
+
+pypdf==6.21.4
+python-docx==1.2.0

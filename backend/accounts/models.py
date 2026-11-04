@@ -242,4 +242,39 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.candidate.username} - {self.job.title}"
+class ApplicationStatusHistory(models.Model):
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="status_history",
+    )
 
+    old_status = models.CharField(
+        max_length=20,
+        choices=Application.Status.choices,
+        blank=True,
+    )
+
+    new_status = models.CharField(
+        max_length=20,
+        choices=Application.Status.choices,
+    )
+
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="application_status_changes",
+    )
+
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["changed_at"]
+
+    def __str__(self):
+        return (
+            f"Application #{self.application.id}: "
+            f"{self.old_status} → {self.new_status}"
+        )

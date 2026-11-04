@@ -12,6 +12,11 @@ function Applications() {
   const [message, setMessage] = useState("");
   const [withdrawingId, setWithdrawingId] = useState(null);
 
+  const [expandedTimelineId, setExpandedTimelineId] = useState(null);
+  const [timelines, setTimelines] = useState({});
+  const [timelineLoadingId, setTimelineLoadingId] = useState(null);
+  const [timelineErrors, setTimelineErrors] = useState({});
+
   const token = sessionStorage.getItem("accessToken");
 
   const fetchApplications = async () => {
@@ -91,8 +96,62 @@ function Applications() {
     }
   };
 
+  const handleViewTimeline = async (applicationId) => {
+    if (expandedTimelineId === applicationId) {
+      setExpandedTimelineId(null);
+      return;
+    }
+
+    setExpandedTimelineId(applicationId);
+
+    if (timelines[applicationId]) {
+      return;
+    }
+
+    try {
+      setTimelineLoadingId(applicationId);
+
+      setTimelineErrors((previous) => ({
+        ...previous,
+        [applicationId]: "",
+      }));
+
+      const response = await fetch(
+        `${API_URL}/applications/${applicationId}/timeline/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Failed to load application timeline.");
+      }
+
+      setTimelines((previous) => ({
+        ...previous,
+        [applicationId]: data,
+      }));
+    } catch (err) {
+      setTimelineErrors((previous) => ({
+        ...previous,
+        [applicationId]: err.message,
+      }));
+    } finally {
+      setTimelineLoadingId(null);
+    }
+  };
+
   const getStatusClass = (status) => {
     return status.toLowerCase().replaceAll("_", "-");
+  };
+
+  const formatDateTime = (dateTime) => {
+    return new Date(dateTime).toLocaleString();
   };
 
   return (
@@ -166,6 +225,16 @@ function Applications() {
                 <div className="application-card-actions">
                   <button
                     type="button"
+                    className="application-timeline-button"
+                    onClick={() => handleViewTimeline(application.id)}
+                  >
+                    {expandedTimelineId === application.id
+                      ? "Hide Timeline"
+                      : "View Timeline"}
+                  </button>
+
+                  <button
+                    type="button"
                     className="application-withdraw-button"
                     onClick={() => handleWithdraw(application.id)}
                     disabled={withdrawingId === application.id}
@@ -175,6 +244,57 @@ function Applications() {
                       : "Withdraw Application"}
                   </button>
                 </div>
+
+                {expandedTimelineId === application.id && (
+                  <div className="application-timeline">
+                    <h3>Application Timeline</h3>
+
+                    {timelineLoadingId === application.id ? (
+                      <p className="applications-message">
+                        Loading timeline...
+                      </p>
+                    ) : timelineErrors[application.id] ? (
+                      <div className="applications-error">
+                        {timelineErrors[application.id]}
+                      </div>
+                    ) : timelines[application.id]?.length > 0 ? (
+                      <div className="timeline-list">
+                        {timelines[application.id].map((event) => (
+                          <div className="timeline-item" key={event.id}>
+                            <div className="timeline-marker"></div>
+
+                            <div className="timeline-content">
+                              <h4>
+                                {event.old_status
+                                  ? `${event.old_status.replaceAll(
+                                      "_",
+                                      " "
+                                    )} → ${event.new_status.replaceAll(
+                                      "_",
+                                      " "
+                                    )}`
+                                  : event.new_status.replaceAll("_", " ")}
+                              </h4>
+
+                              <p>
+                                Updated by:{" "}
+                                {event.changed_by_name || "System"}
+                              </p>
+
+                              <span>
+                                {formatDateTime(event.changed_at)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="applications-message">
+                        No timeline history available.
+                      </p>
+                    )}
+                  </div>
+                )}
               </article>
             ))}
           </div>

@@ -285,3 +285,212 @@
     width: 100%;
   }
 }
+
+
+/* ATS Resume Evaluation */
+
+.applicant-ats-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.applicant-ats-button {
+  padding: 11px 18px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.applicant-ats-button:hover {
+  background: #1d4ed8;
+}
+
+.applicant-ats-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.applicant-ats-results {
+  margin-top: 18px;
+  padding: 22px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.ats-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.ats-result-header h3 {
+  margin: 0 0 7px;
+  color: #0f172a;
+  font-size: 19px;
+}
+
+.ats-result-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ats-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 95px;
+  min-height: 95px;
+  padding: 12px;
+  background: #dbeafe;
+  border: 2px solid #93c5fd;
+  border-radius: 50%;
+}
+
+.ats-score strong {
+  color: #1d4ed8;
+  font-size: 23px;
+}
+
+.ats-score span {
+  color: #1e40af;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ats-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.ats-summary > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 15px 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.ats-summary strong {
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.ats-summary span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ats-skill-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ats-skill-group {
+  padding: 15px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.ats-skill-group h4 {
+  margin: 0 0 13px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.ats-skill-group p {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ats-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ats-skill {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ats-skill.matched {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ats-skill.missing {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ats-disclaimer {
+  margin: 18px 0 0;
+  padding: 12px;
+  background: #eff6ff;
+  border-radius: 7px;
+  color: #1e40af;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .ats-result-header {
+    align-items: flex-start;
+  }
+
+  .ats-score {
+    min-width: 78px;
+    min-height: 78px;
+  }
+
+  .ats-score strong {
+    font-size: 19px;
+  }
+
+  .ats-summary {
+    gap: 7px;
+  }
+
+  .ats-summary > div {
+    padding: 12px 5px;
+  }
+
+  .ats-summary strong {
+    font-size: 20px;
+  }
+
+  .ats-summary span {
+    font-size: 10px;
+  }
+
+  .ats-skill-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .applicant-ats-results {
+    padding: 15px;
+  }
+}

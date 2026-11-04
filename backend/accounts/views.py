@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
 
 from .serializers import (
     CandidateRegistrationSerializer,
@@ -93,6 +92,8 @@ def candidate_profile(request):
         status=status.HTTP_400_BAD_REQUEST,
     )
 
+
+# Education APIs
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -244,7 +245,8 @@ def experience_detail(request, pk):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST,
     )
-    
+
+
 # Skills APIs
 
 @api_view(["GET", "POST"])
@@ -257,9 +259,7 @@ def skill_list_create(request):
     )
 
     if request.method == "GET":
-        skills = Skill.objects.filter(
-            profile=profile
-        )
+        skills = Skill.objects.filter(profile=profile)
 
         serializer = SkillSerializer(skills, many=True)
         return Response(serializer.data)
@@ -327,6 +327,8 @@ def skill_detail(request, pk):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST,
     )
+
+
 # Resume APIs
 
 @api_view(["GET", "POST"])
@@ -426,13 +428,14 @@ def resume_detail(request, pk):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-        resume.file.delete(save=False)
+    resume.file.delete(save=False)
     resume.delete()
 
     return Response(
         {"message": "Resume deleted successfully."},
         status=status.HTTP_200_OK,
     )
+
 
 # Job Management APIs
 
@@ -444,6 +447,7 @@ def job_list_create(request):
     if request.method == "GET":
         if request.user.role == "ADMIN":
             jobs = Job.objects.all()
+
         elif request.user.role == "RECRUITER":
             from django.db.models import Q
 
@@ -451,6 +455,7 @@ def job_list_create(request):
                 Q(status=Job.Status.PUBLISHED)
                 | Q(recruiter=request.user)
             )
+
         else:
             jobs = Job.objects.filter(
                 status=Job.Status.PUBLISHED
@@ -459,7 +464,6 @@ def job_list_create(request):
         serializer = JobSerializer(jobs, many=True)
         return Response(serializer.data)
 
-    # Only recruiters and admins can create jobs.
     if request.user.role not in ["RECRUITER", "ADMIN"]:
         return Response(
             {"detail": "Only recruiters and admins can create jobs."},
@@ -494,7 +498,6 @@ def job_detail(request, pk):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Check whether the user can view this job.
     is_admin = request.user.role == "ADMIN"
     is_owner = job.recruiter_id == request.user.id
 
@@ -512,7 +515,6 @@ def job_detail(request, pk):
         serializer = JobSerializer(job)
         return Response(serializer.data)
 
-    # Only the owner or an admin can modify a job.
     if not is_admin and not is_owner:
         return Response(
             {"detail": "You cannot modify this job."},
@@ -541,16 +543,15 @@ def job_detail(request, pk):
             {"message": "Job deleted successfully."},
             status=status.HTTP_200_OK,
         )
-        
-        
+
+
 # Job Application APIs
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def application_list_create(request):
-    from .models import Application, Job
+    from .models import Application, ApplicationStatusHistory, Job
 
-    # View applications based on user role.
     if request.method == "GET":
         if request.user.role == "CANDIDATE":
             applications = Application.objects.filter(
@@ -603,16 +604,26 @@ def application_list_create(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    # Create the application.
     application, created = Application.objects.get_or_create(
         candidate=request.user,
         job=job,
     )
 
+    # Prevent duplicate applications.
     if not created:
         return Response(
             {"detail": "You have already applied for this job."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # Save the initial application status in timeline.
+    ApplicationStatusHistory.objects.create(
+        application=application,
+        old_status="",
+        new_status=application.status,
+        changed_by=request.user,
+    )
 
     serializer = ApplicationSerializer(application)
 
@@ -625,7 +636,7 @@ def application_list_create(request):
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def application_detail(request, pk):
-    from .models import Application
+    from .models import Application, ApplicationStatusHistory
 
     try:
         application = Application.objects.get(pk=pk)
@@ -647,7 +658,6 @@ def application_detail(request, pk):
 
     is_admin = request.user.role == "ADMIN"
 
-    # Check viewing permission.
     if request.method == "GET":
         if not (is_candidate or is_recruiter or is_admin):
             return Response(
@@ -658,7 +668,6 @@ def application_detail(request, pk):
         serializer = ApplicationSerializer(application)
         return Response(serializer.data)
 
-    # Candidate can withdraw their own application.
     if request.method == "DELETE":
         if not is_candidate:
             return Response(
@@ -689,17 +698,154 @@ def application_detail(request, pk):
 
     if new_status not in valid_statuses:
         return Response(
-            {
-                "status": [
-                    "Invalid application status."
-                ]
-            },
+            {"status": ["Invalid application status."]},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    application.status = new_status
-    application.save(update_fields=["status", "updated_at"])
+    old_status = application.status
+
+    # Record history only when status actually changes.
+    if old_status != new_status:
+        ApplicationStatusHistory.objects.create(
+            application=application,
+            old_status=old_status,
+            new_status=new_status,
+            changed_by=request.user,
+        )
+
+        application.status = new_status
+        application.save(update_fields=["status", "updated_at"])
 
     serializer = ApplicationSerializer(application)
 
     return Response(serializer.data)
+
+
+
+# Application Timeline API
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def application_timeline(request, pk):
+    from .models import Application, ApplicationStatusHistory
+    from .serializers import ApplicationStatusHistorySerializer
+
+    try:
+        application = Application.objects.get(pk=pk)
+    except Application.DoesNotExist:
+        return Response(
+            {"detail": "Application not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    is_candidate = (
+        request.user.role == "CANDIDATE"
+        and application.candidate_id == request.user.id
+    )
+
+    is_recruiter = (
+        request.user.role == "RECRUITER"
+        and application.job.recruiter_id == request.user.id
+    )
+
+    is_admin = request.user.role == "ADMIN"
+
+    if not (is_candidate or is_recruiter or is_admin):
+        return Response(
+            {"detail": "Application not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    history = ApplicationStatusHistory.objects.filter(
+        application=application
+    ).select_related("changed_by")
+
+    serializer = ApplicationStatusHistorySerializer(
+        history,
+        many=True,
+    )
+
+    return Response(serializer.data)
+
+# ATS Resume Evaluation API
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def application_ats_evaluation(request, pk):
+    from .models import Application, Resume
+    from .resume_parser import extract_resume_text
+    from .ats_evaluator import evaluate_resume
+
+    # Only recruiters and admins can evaluate applications.
+    if request.user.role not in ["RECRUITER", "ADMIN"]:
+        return Response(
+            {"detail": "Only recruiters and admins can evaluate resumes."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        application = Application.objects.select_related(
+            "candidate",
+            "job",
+        ).get(pk=pk)
+
+    except Application.DoesNotExist:
+        return Response(
+            {"detail": "Application not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Recruiters can evaluate applicants only for their own jobs.
+    if (
+        request.user.role == "RECRUITER"
+        and application.job.recruiter_id != request.user.id
+    ):
+        return Response(
+            {"detail": "Application not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Find the candidate's primary resume.
+    resume = Resume.objects.filter(
+        profile__user=application.candidate,
+        is_primary=True,
+    ).first()
+
+    # If there is no primary resume, use the latest uploaded resume.
+    if not resume:
+        resume = Resume.objects.filter(
+            profile__user=application.candidate,
+        ).order_by("-created_at").first()
+
+    if not resume:
+        return Response(
+            {"detail": "The candidate has not uploaded a resume."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    try:
+        resume_text = extract_resume_text(resume.file)
+
+        evaluation = evaluate_resume(
+            resume_text,
+            application.job,
+        )
+
+    except ValueError as error:
+        return Response(
+            {"detail": str(error)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return Response({
+        "application_id": application.id,
+        "candidate_username": application.candidate.username,
+        "job_title": application.job.title,
+        "company_name": application.job.company_name,
+        "resume_title": resume.title,
+        "evaluation": evaluation,
+        "message": (
+            "This score represents technical skill matching only. "
+            "It is not an automatic hiring decision."
+        ),
+    })

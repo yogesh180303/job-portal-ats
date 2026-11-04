@@ -21,7 +21,9 @@ from accounts.views import (
     job_list_create,
     job_detail,
     application_list_create,
-application_detail,
+    application_detail,
+    application_timeline,
+    application_ats_evaluation,
 )
 
 
@@ -132,6 +134,18 @@ path(
     "api/applications/<int:pk>/",
     application_detail,
     name="application-detail",
+),
+
+path(
+    "api/applications/<int:pk>/timeline/",
+    application_timeline,
+    name="application-timeline",
+),
+
+path(
+    "api/applications/<int:pk>/ats-evaluation/",
+    application_ats_evaluation,
+    name="application-ats-evaluation",
 ),
 
 ]
