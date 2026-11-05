@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
@@ -14,6 +13,23 @@ function Dashboard() {
   const [applications, setApplications] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [applicationStats, setApplicationStats] = useState({
+    total: 0,
+    underReview: 0,
+    shortlisted: 0,
+    interview: 0,
+    selected: 0,
+    rejected: 0,
+  });
+
+  const [recruiterJobs, setRecruiterJobs] = useState([]);
+  const [recruiterApplications, setRecruiterApplications] = useState([]);
+  const [recruiterJobStats, setRecruiterJobStats] = useState({
+    total: 0,
+    active: 0,
+    draft: 0,
+    closed: 0,
+  });
+  const [recruiterApplicationStats, setRecruiterApplicationStats] = useState({
     total: 0,
     underReview: 0,
     shortlisted: 0,
@@ -116,6 +132,67 @@ function Dashboard() {
           setApplicationStats(stats);
           setApplications(applicationData.slice(0, 5));
         }
+
+        if (userData.role === "RECRUITER") {
+          const results = await Promise.allSettled([
+            fetchData("/jobs/"),
+            fetchData("/applications/"),
+          ]);
+
+          const jobsResult = results[0];
+          const applicationsResult = results[1];
+
+          if (jobsResult.status === "rejected") {
+            throw jobsResult.reason;
+          }
+
+          if (applicationsResult.status === "rejected") {
+            throw applicationsResult.reason;
+          }
+
+          // Count only jobs owned by the currently logged-in recruiter.
+          const ownJobs = jobsResult.value.filter(
+            (job) => job.recruiter === userData.id
+          );
+
+          const recruiterApplicationData = applicationsResult.value;
+
+          const jobStats = {
+            total: ownJobs.length,
+            active: ownJobs.filter((job) => job.status === "PUBLISHED").length,
+            draft: ownJobs.filter((job) => job.status === "DRAFT").length,
+            closed: ownJobs.filter((job) => job.status === "CLOSED").length,
+          };
+
+          const applicantStats = {
+            total: recruiterApplicationData.length,
+            underReview: recruiterApplicationData.filter((app) =>
+              ["APPLIED", "UNDER_REVIEW"].includes(app.status)
+            ).length,
+            shortlisted: recruiterApplicationData.filter(
+              (app) => app.status === "SHORTLISTED"
+            ).length,
+            interview: recruiterApplicationData.filter(
+              (app) => app.status === "INTERVIEW"
+            ).length,
+            selected: recruiterApplicationData.filter(
+              (app) => app.status === "SELECTED"
+            ).length,
+            rejected: recruiterApplicationData.filter(
+              (app) => app.status === "REJECTED"
+            ).length,
+          };
+
+          const recentApplications = [...recruiterApplicationData].sort(
+            (first, second) =>
+              new Date(second.applied_at || 0) - new Date(first.applied_at || 0)
+          );
+
+          setRecruiterJobs(ownJobs);
+          setRecruiterApplications(recentApplications.slice(0, 5));
+          setRecruiterJobStats(jobStats);
+          setRecruiterApplicationStats(applicantStats);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -203,15 +280,214 @@ function Dashboard() {
           <span className="eyebrow">
             {user.role === "CANDIDATE"
               ? "CANDIDATE DASHBOARD"
-              : "CAREERHUB DASHBOARD"}
+              : user.role === "RECRUITER"
+                ? "RECRUITER DASHBOARD"
+                : "CAREERHUB DASHBOARD"}
           </span>
 
           <h1>Welcome back, {user.username}!</h1>
 
           <p>
-            Manage your job search and keep track of your career journey.
+            {user.role === "RECRUITER"
+              ? "Manage your job postings, review applicants, and track hiring progress."
+              : "Manage your job search and keep track of your career journey."}
           </p>
         </section>
+
+        {user.role === "RECRUITER" && (
+          <>
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">YOUR JOB POSTINGS</span>
+                  <h2>Job Overview</h2>
+                </div>
+
+                <Link to="/jobs" className="dashboard-text-link">
+                  Manage jobs
+                </Link>
+              </div>
+
+              <div className="dashboard-stats-grid">
+                <article className="dashboard-stat-card">
+                  <span>Total Jobs</span>
+                  <strong>{recruiterJobStats.total}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Active Jobs</span>
+                  <strong>{recruiterJobStats.active}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Draft Jobs</span>
+                  <strong>{recruiterJobStats.draft}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Closed Jobs</span>
+                  <strong>{recruiterJobStats.closed}</strong>
+                </article>
+              </div>
+            </section>
+
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">HIRING ACTIVITY</span>
+                  <h2>Applicant Overview</h2>
+                </div>
+
+                <Link to="/applicants" className="dashboard-text-link">
+                  View applicants
+                </Link>
+              </div>
+
+              <div className="dashboard-stats-grid">
+                <article className="dashboard-stat-card">
+                  <span>Total Applicants</span>
+                  <strong>{recruiterApplicationStats.total}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Under Review</span>
+                  <strong>{recruiterApplicationStats.underReview}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Shortlisted</span>
+                  <strong>{recruiterApplicationStats.shortlisted}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Interviews</span>
+                  <strong>{recruiterApplicationStats.interview}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Selected</span>
+                  <strong>{recruiterApplicationStats.selected}</strong>
+                </article>
+
+                <article className="dashboard-stat-card">
+                  <span>Rejected</span>
+                  <strong>{recruiterApplicationStats.rejected}</strong>
+                </article>
+              </div>
+            </section>
+
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">LATEST HIRING ACTIVITY</span>
+                  <h2>Recent Applicants</h2>
+                </div>
+
+                <Link to="/applicants" className="dashboard-text-link">
+                  View all applicants
+                </Link>
+              </div>
+
+              {recruiterApplications.length === 0 ? (
+                <div className="dashboard-empty-state">
+                  <h3>No applicants yet</h3>
+                  <p>
+                    Applicants will appear here when candidates apply to your
+                    published jobs.
+                  </p>
+
+                  <Link to="/jobs" className="button button-primary">
+                    Manage Jobs
+                  </Link>
+                </div>
+              ) : (
+                <div className="dashboard-table-wrapper">
+                  <table className="dashboard-applications-table">
+                    <thead>
+                      <tr>
+                        <th>Candidate</th>
+                        <th>Job Title</th>
+                        <th>Applied On</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {recruiterApplications.map((application) => (
+                        <tr key={application.id}>
+                          <td>
+                            {application.candidate_name || "Candidate"}
+                          </td>
+                          <td>
+                            {application.job_title || "Untitled Job"}
+                          </td>
+                          <td>{formatDate(application.applied_at)}</td>
+                          <td>
+                            <span
+                              className={`dashboard-status dashboard-status-${(
+                                application.status || "unknown"
+                              ).toLowerCase()}`}
+                            >
+                              {formatStatus(application.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">QUICK ACTIONS</span>
+                  <h2>Manage Your Hiring</h2>
+                </div>
+              </div>
+
+              <div className="dashboard-grid">
+                <article className="dashboard-card">
+                  <div className="dashboard-icon" aria-hidden="true">
+                    +
+                  </div>
+                  <h2>Post a Job</h2>
+                  <p>Create a new job opening and publish it for candidates.</p>
+                  <Link to="/jobs" className="button button-primary">
+                    Create Job
+                  </Link>
+                </article>
+
+                <article className="dashboard-card">
+                  <div className="dashboard-icon" aria-hidden="true">
+                    J
+                  </div>
+                  <h2>Manage Jobs</h2>
+                  <p>
+                    Edit your job postings, publish drafts, or close positions.
+                  </p>
+                  <Link to="/jobs" className="button button-primary">
+                    Manage Jobs
+                  </Link>
+                </article>
+
+                <article className="dashboard-card">
+                  <div className="dashboard-icon" aria-hidden="true">
+                    A
+                  </div>
+                  <h2>View Applicants</h2>
+                  <p>
+                    Review candidates and update their application status.
+                  </p>
+                  <Link to="/applicants" className="button button-primary">
+                    View Applicants
+                  </Link>
+                </article>
+              </div>
+            </section>
+          </>
+        )}
 
         {user.role === "CANDIDATE" && (
           <>
@@ -221,6 +497,7 @@ function Dashboard() {
                   <span className="eyebrow">YOUR PROGRESS</span>
                   <h2>Application Overview</h2>
                 </div>
+
                 <Link to="/applications" className="dashboard-text-link">
                   View all applications
                 </Link>
@@ -265,6 +542,7 @@ function Dashboard() {
                   <span className="eyebrow">BUILD YOUR PROFILE</span>
                   <h2>Profile Completion</h2>
                 </div>
+
                 <strong className="dashboard-completion-value">
                   {profileCompletion}%
                 </strong>
@@ -301,6 +579,7 @@ function Dashboard() {
                   <span className="eyebrow">LATEST ACTIVITY</span>
                   <h2>Recent Applications</h2>
                 </div>
+
                 <Link to="/applications" className="dashboard-text-link">
                   View all
                 </Link>
@@ -327,11 +606,16 @@ function Dashboard() {
                         <th>Status</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {applications.map((application) => (
                         <tr key={application.id}>
-                          <td>{application.job_title || "Untitled Job"}</td>
-                          <td>{application.company_name || "Not available"}</td>
+                          <td>
+                            {application.job_title || "Untitled Job"}
+                          </td>
+                          <td>
+                            {application.company_name || "Not available"}
+                          </td>
                           <td>{formatDate(application.applied_at)}</td>
                           <td>
                             <span
@@ -367,49 +651,31 @@ function Dashboard() {
             </article>
           )}
 
-          <article className="dashboard-card">
-            <div className="dashboard-icon">📄</div>
-            <h2>My Applications</h2>
-            <p>
-              Track the jobs you have applied for and monitor their status.
-            </p>
-            <Link to="/applications" className="button button-primary">
-              View Applications
-            </Link>
-          </article>
+          {user.role === "CANDIDATE" && (
+            <>
+              <article className="dashboard-card">
+                <div className="dashboard-icon">📄</div>
+                <h2>My Applications</h2>
+                <p>
+                  Track the jobs you have applied for and monitor their status.
+                </p>
+                <Link to="/applications" className="button button-primary">
+                  View Applications
+                </Link>
+              </article>
 
-          <article className="dashboard-card">
-            <div className="dashboard-icon">⭐</div>
-            <h2>Saved Jobs</h2>
-            <p>Keep interesting job opportunities in one place.</p>
-            {user.role === "CANDIDATE" && (
-              <Link to="/saved-jobs" className="button button-primary">
-                View Saved Jobs
-              </Link>
-            )}
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-icon">👤</div>
-            <h2>My Profile</h2>
-            <p>
-              View your account details and prepare your professional profile.
-            </p>
-            <Link to="/profile" className="button button-primary">
-              View Profile
-            </Link>
-          </article>
-
-          <article className="dashboard-card">
-            <div className="dashboard-icon">📁</div>
-            <h2>My Resumes</h2>
-            <p>
-              Upload, view, download, and manage your professional resumes.
-            </p>
-            <Link to="/resumes" className="button button-primary">
-              Manage Resumes
-            </Link>
-          </article>
+              <article className="dashboard-card">
+                <div className="dashboard-icon">📁</div>
+                <h2>My Resumes</h2>
+                <p>
+                  Upload, view, download, and manage your professional resumes.
+                </p>
+                <Link to="/resumes" className="button button-primary">
+                  Manage Resumes
+                </Link>
+              </article>
+            </>
+          )}
 
           <section className="dashboard-card dashboard-profile">
             <h2>Account Information</h2>
@@ -427,13 +693,12 @@ function Dashboard() {
             </p>
           </section>
 
-          {["RECRUITER", "ADMIN"].includes(user.role) && (
+          {user.role === "ADMIN" && (
             <article className="dashboard-card">
               <div className="dashboard-icon">👥</div>
               <h2>Manage Applicants</h2>
               <p>
-                Review candidates who applied for your jobs and update their
-                application status.
+                Review applications across the platform and update their status.
               </p>
               <Link to="/applicants" className="button button-primary">
                 View Applicants
@@ -443,9 +708,17 @@ function Dashboard() {
         </section>
 
         <div className="dashboard-actions">
-          <Link to="/" className="button button-primary">
-            Explore Jobs
-          </Link>
+          {user.role === "CANDIDATE" && (
+            <Link to="/" className="button button-primary">
+              Explore Jobs
+            </Link>
+          )}
+
+          {user.role === "RECRUITER" && (
+            <Link to="/jobs" className="button button-primary">
+              Manage Jobs
+            </Link>
+          )}
 
           <button
             type="button"
