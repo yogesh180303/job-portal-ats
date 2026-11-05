@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import Login from './Login.jsx'
 import Register from './Register.jsx'
@@ -14,6 +14,8 @@ import Applicants from "./Applicants";
 import Notifications from "./Notifications";
 import SavedJobs from "./SavedJobs";
 import CompanyProfile from "./CompanyProfile";
+import Companies from "./Companies";
+import PublicCompanyProfile from "./PublicCompanyProfile";
 import './App.css'
 
 const sampleJobs = [
@@ -81,6 +83,18 @@ function App() {
         element={<CompanyProfile />}
       />
 
+      {/* Phase 20: Public Company Directory */}
+      <Route
+        path="/companies"
+        element={<Companies />}
+      />
+
+      {/* Phase 20: Public Company Profile */}
+      <Route
+        path="/companies/:id"
+        element={<PublicCompanyProfile />}
+      />
+
       <Route
         path="/"
         element={
@@ -93,6 +107,7 @@ function App() {
 
               <nav className="nav-links" aria-label="Main navigation">
                 <a href="#jobs">Find jobs</a>
+                <Link to="/companies">Companies</Link>
                 <a href="#about">About</a>
               </nav>
 
@@ -125,7 +140,7 @@ function App() {
                 >
                   <label className="search-field">
                     <span className="search-symbol" aria-hidden="true">
-                      âŒ•
+                      Ã¢Å’â€¢
                     </span>
                     <input
                       type="search"
@@ -178,7 +193,7 @@ function App() {
                           <span>{job.type}</span>
                         </div>
                         <button className="job-link" type="button">
-                          View details <span aria-hidden="true">â†’</span>
+                          View details <span aria-hidden="true">Ã¢â€ â€™</span>
                         </button>
                       </article>
                     ))
