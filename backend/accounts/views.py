@@ -847,7 +847,7 @@ def application_timeline(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def application_ats_evaluation(request, pk):
-    from .models import Application, Resume
+    from .models import Application, CandidateProfile, Resume
     from .resume_parser import extract_resume_text
     from .ats_evaluator import evaluate_resume
 
@@ -897,9 +897,14 @@ def application_ats_evaluation(request, pk):
     try:
         resume_text = extract_resume_text(resume.file)
 
+        candidate_profile = CandidateProfile.objects.filter(
+            user=application.candidate
+        ).first()
+
         evaluation = evaluate_resume(
             resume_text,
             application.job,
+            candidate_profile,
         )
 
     except ValueError as error:
@@ -916,7 +921,8 @@ def application_ats_evaluation(request, pk):
         "resume_title": resume.title,
         "evaluation": evaluation,
         "message": (
-            "This score represents technical skill matching only. "
+            "This score is an advisory resume-to-job matching "
+            "indicator based on available information. "
             "It is not an automatic hiring decision."
         ),
     })

@@ -1,8 +1,10 @@
 import tempfile
 from io import BytesIO
+from datetime import date
+from types import SimpleNamespace
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import override_settings, SimpleTestCase
 
 from docx import Document
 
@@ -10,6 +12,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import User, CandidateProfile, Resume
+from .ats_evaluator import (
+    evaluate_resume,
+    calculate_experience_years,
+    calculate_education_relevance,
+)
 
 
 class ResumeParsingAPITests(APITestCase):
@@ -216,7 +223,176 @@ class ResumeParsingAPITests(APITestCase):
             {},
             format="json",
         )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_404_NOT_FOUND,
+        )
+
+
+class FakeRelatedManager:
+    """Provide a simple replacement for a Django related manager."""
+
+    def __init__(self, items=None):
+        self.items = items or []
+
+    def all(self):
+        return self.items
+
+
+class ATSScoringTests(SimpleTestCase):
+    def setUp(self):
+        self.job = SimpleNamespace(
+            title="Python Developer",
+            description="Develop applications using Python and Django.",
+            requirements="Python, Django and REST APIs required.",
+        )
+
+    def create_profile(
+        self,
+        experiences=None,
+        educations=None,
+        skills=None,
+    ):
+        return SimpleNamespace(
+            work_experiences=FakeRelatedManager(experiences),
+            educations=FakeRelatedManager(educations),
+            candidate_skills=FakeRelatedManager(skills),
+            skills="",
+            professional_summary="",
+        )
+
+    def test_skill_matching_and_legacy_response_fields(self):
+        result = evaluate_resume(
+            "Python developer with Django and REST APIs experience.",
+            self.job,
+        )
+
+        self.assertIn("Python", result["resume_skills"])
+        self.assertIn("Django", result["resume_skills"])
+
+        self.assertIn("Python", result["matched_skills"])
+        self.assertIn("Django", result["matched_skills"])
+
+        self.assertEqual(
+            result["total_required_skills"],
+            len(result["required_skills"]),
+        )
+
+        self.assertEqual(
+            result["matched_count"],
+            len(result["matched_skills"]),
+        )
+
+        self.assertEqual(
+            result["missing_count"],
+            len(result["missing_skills"]),
+        )
+
+        self.assertIn("ats_score", result)
+        self.assertIn("score_breakdown", result)
+
+    def test_education_is_not_scored_without_job_requirement(self):
+        education = SimpleNamespace(
+            degree="Master of Computer Applications",
+            field_of_study="Computer Science",
+        )
+
+        result = calculate_education_relevance(
+            self.job,
+            [education],
+        )
+
+        self.assertIsNone(result)
+
+    def test_relevant_education_matches_explicit_requirement(self):
+        education_job = SimpleNamespace(
+            title="Software Developer",
+            description=(
+                "We are looking for a developer."
+            ),
+            requirements=(
+                "Bachelor's degree in Computer Science required."
+            ),
+        )
+
+        education = SimpleNamespace(
+            degree="Bachelor's Degree",
+            field_of_study="Computer Science",
+        )
+
+        result = calculate_education_relevance(
+            education_job,
+            [education],
+        )
+
+        self.assertEqual(result, 100.0)
+
+    def test_overlapping_experience_periods_are_not_double_counted(self):
+        experiences = [
+            SimpleNamespace(
+                start_date=date(2020, 1, 1),
+                end_date=date(2021, 1, 1),
+                currently_working=False,
+            ),
+            SimpleNamespace(
+                start_date=date(2020, 6, 1),
+                end_date=date(2022, 1, 1),
+                currently_working=False,
+            ),
+        ]
+
+        result = calculate_experience_years(experiences)
+
+        self.assertEqual(result, 2.0)
+
+    def test_weighted_score_excludes_unavailable_categories(self):
+        profile = self.create_profile()
+
+        result = evaluate_resume(
+            "Python developer with Django experience.",
+            self.job,
+            profile,
+        )
+
+        breakdown = result["score_breakdown"]
+
+        self.assertTrue(
+            breakdown["technical_skills"]["available"]
+        )
+
+        self.assertTrue(
+            breakdown["keyword_matching"]["available"]
+        )
+
+        self.assertFalse(
+            breakdown["work_experience"]["available"]
+        )
+
+        self.assertFalse(
+            breakdown["education"]["available"]
+        )
+
+        available_categories = [
+            category
+            for category in breakdown.values()
+            if category["available"]
+        ]
+
+        total_weight = sum(
+            category["weight"]
+            for category in available_categories
+        )
+
+        expected_score = round(
+            sum(
+                category["weight"] * category["score"]
+                for category in available_categories
+            ) / total_weight,
+            2,
+        )
+
+        self.assertEqual(
+            result["ats_score"],
+            expected_score,
         )

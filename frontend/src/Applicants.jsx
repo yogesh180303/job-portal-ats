@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Applicants.css";
@@ -30,6 +29,13 @@ const skillOptions = [
   { value: "React", label: "React" },
 ];
 
+const scoreCategoryLabels = {
+  technical_skills: "Technical Skills",
+  keyword_matching: "Keyword Matching",
+  work_experience: "Work Experience",
+  education: "Education",
+};
+
 function Applicants() {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,22 +43,18 @@ function Applicants() {
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
 
-  // Application filters
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [atsScoreFilter, setAtsScoreFilter] = useState("ALL");
   const [skillFilter, setSkillFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Phase 10: Applicant sorting
   const [sortOption, setSortOption] = useState("NEWEST");
 
-  // Timeline states
   const [expandedTimelineId, setExpandedTimelineId] = useState(null);
   const [timelines, setTimelines] = useState({});
   const [timelineLoadingId, setTimelineLoadingId] = useState(null);
   const [timelineErrors, setTimelineErrors] = useState({});
 
-  // ATS evaluation states
   const [atsResults, setAtsResults] = useState({});
   const [expandedAtsId, setExpandedAtsId] = useState(null);
   const [atsLoadingId, setAtsLoadingId] = useState(null);
@@ -60,7 +62,6 @@ function Applicants() {
 
   const token = sessionStorage.getItem("accessToken");
 
-  // Fetch applicants and their ATS evaluations
   const fetchApplicants = async () => {
     try {
       setLoading(true);
@@ -89,7 +90,6 @@ function Applicants() {
 
       setApplicants(data);
 
-      // Fetch ATS evaluation for each applicant
       const scoreResults = await Promise.all(
         data.map(async (applicant) => {
           try {
@@ -137,7 +137,6 @@ function Applicants() {
     }
   };
 
-  // Load applicants when status filter changes
   useEffect(() => {
     if (!token) {
       setError("Please log in to manage applicants.");
@@ -148,7 +147,6 @@ function Applicants() {
     fetchApplicants();
   }, [statusFilter]);
 
-  // Update application status
   const handleStatusChange = async (applicationId, newStatus) => {
     setUpdatingId(applicationId);
     setError("");
@@ -195,7 +193,6 @@ function Applicants() {
     }
   };
 
-  // View application timeline
   const handleViewTimeline = async (
     applicationId,
     forceRefresh = false
@@ -254,7 +251,6 @@ function Applicants() {
     }
   };
 
-  // Evaluate candidate resume
   const handleEvaluateResume = async (applicationId) => {
     if (
       expandedAtsId === applicationId &&
@@ -311,14 +307,11 @@ function Applicants() {
     }
   };
 
-  // Format date and time
   const formatDateTime = (date) => {
     return new Date(date).toLocaleString();
   };
 
-  // Apply search and filters
   const filteredApplicants = applicants.filter((applicant) => {
-    // Candidate name and email search
     if (searchQuery.trim() !== "") {
       const query = searchQuery.trim().toLowerCase();
 
@@ -340,7 +333,6 @@ function Applicants() {
 
     const evaluation = atsResults[applicant.id]?.evaluation;
 
-    // ATS score filter
     if (atsScoreFilter !== "ALL") {
       const score = evaluation?.ats_score;
 
@@ -357,7 +349,6 @@ function Applicants() {
       }
     }
 
-    // Candidate skills filter
     if (skillFilter !== "ALL") {
       const candidateSkills = evaluation?.resume_skills || [];
 
@@ -374,7 +365,6 @@ function Applicants() {
     return true;
   });
 
-  // Phase 10: Sort applicants after applying filters
   const sortedApplicants = [...filteredApplicants].sort((a, b) => {
     if (
       sortOption === "HIGHEST_SCORE" ||
@@ -383,7 +373,6 @@ function Applicants() {
       const scoreA = atsResults[a.id]?.evaluation?.ats_score;
       const scoreB = atsResults[b.id]?.evaluation?.ats_score;
 
-      // Applicants without an ATS score stay at the bottom
       if (scoreA == null && scoreB == null) return 0;
       if (scoreA == null) return 1;
       if (scoreB == null) return -1;
@@ -405,6 +394,98 @@ function Applicants() {
     return dateB - dateA;
   });
 
+  const renderScoreBreakdown = (breakdown) => {
+    if (!breakdown) return null;
+
+    return (
+      <section className="ats-detail-section">
+        <h4>Detailed Score Breakdown</h4>
+
+        <div className="ats-breakdown-list">
+          {Object.entries(breakdown).map(([key, item]) => (
+            <div className="ats-breakdown-item" key={key}>
+              <div className="ats-breakdown-heading">
+                <strong>
+                  {scoreCategoryLabels[key] || key}
+                </strong>
+
+                <span>
+                  {item.available
+                    ? `${item.score}%`
+                    : "Not available"}
+                </span>
+              </div>
+
+              {item.available && (
+                <div className="ats-progress-track">
+                  <div
+                    className="ats-progress-fill"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, Number(item.score) || 0)
+                      )}%`,
+                    }}
+                  />
+                </div>
+              )}
+
+              <small>Category weight: {item.weight}%</small>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  const renderListSection = (heading, items, emptyMessage) => (
+    <section className="ats-detail-section">
+      <h4>{heading}</h4>
+
+      {Array.isArray(items) && items.length > 0 ? (
+        <ul className="ats-text-list">
+          {items.map((item, index) => (
+            <li key={`${heading}-${index}`}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>{emptyMessage}</p>
+      )}
+    </section>
+  );
+
+  const renderProficiencyDetails = (details) => {
+    if (
+      !details ||
+      typeof details !== "object" ||
+      Object.keys(details).length === 0
+    ) {
+      return null;
+    }
+
+    return (
+      <section className="ats-detail-section">
+        <h4>Skill Proficiency Details</h4>
+
+        <div className="ats-proficiency-list">
+          {Object.entries(details).map(([skill, detail]) => {
+            const proficiency =
+              typeof detail === "string"
+                ? detail
+                : detail?.proficiency || "Not specified";
+
+            return (
+              <div className="ats-proficiency-item" key={skill}>
+                <strong>{skill}</strong>
+                <span>{proficiency.replaceAll("_", " ")}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="applicants-page">
       <nav className="applicants-navbar">
@@ -418,7 +499,6 @@ function Applicants() {
       </nav>
 
       <main className="applicants-container">
-        {/* Candidate Name and Email Search */}
         <div className="applicants-filter">
           <label htmlFor="candidate-search">
             Search Candidate by Name or Email
@@ -433,7 +513,6 @@ function Applicants() {
           />
         </div>
 
-        {/* Application Status Filter */}
         <div className="applicants-filter">
           <label htmlFor="status-filter">
             Filter by Application Status
@@ -449,17 +528,13 @@ function Applicants() {
             <option value="ALL">All Applications</option>
 
             {statusOptions.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-              >
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* ATS Score Filter */}
         <div className="applicants-filter">
           <label htmlFor="ats-score-filter">
             Filter by ATS Score
@@ -473,17 +548,13 @@ function Applicants() {
             }
           >
             {atsScoreOptions.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-              >
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Candidate Skills Filter */}
         <div className="applicants-filter">
           <label htmlFor="skill-filter">
             Filter by Candidate Skill
@@ -497,17 +568,13 @@ function Applicants() {
             }
           >
             {skillOptions.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-              >
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Phase 10: Applicant Sorting */}
         <div className="applicants-filter">
           <label htmlFor="applicant-sort">
             Sort Applicants By
@@ -532,15 +599,11 @@ function Applicants() {
         </div>
 
         {message && (
-          <div className="applicants-success">
-            {message}
-          </div>
+          <div className="applicants-success">{message}</div>
         )}
 
         {error && (
-          <div className="applicants-error">
-            {error}
-          </div>
+          <div className="applicants-error">{error}</div>
         )}
 
         {loading ? (
@@ -552,9 +615,9 @@ function Applicants() {
             <h2>No Matching Applicants</h2>
 
             <p>
-              No applicants match the selected status,
-              ATS score, skills, or search.
-              Try changing your filters to see more applicants.
+              No applicants match the selected status, ATS score,
+              skills, or search. Try changing your filters to see
+              more applicants.
             </p>
 
             <Link to="/jobs" className="applicants-button">
@@ -575,7 +638,6 @@ function Applicants() {
                   <div className="applicant-card-header">
                     <div>
                       <h2>{applicant.candidate_name}</h2>
-
                       <p>{applicant.job_title}</p>
 
                       <span className="applicant-company">
@@ -605,7 +667,6 @@ function Applicants() {
                     </p>
                   </div>
 
-                  {/* Update Application Status */}
                   <div className="applicant-status-control">
                     <label htmlFor={`status-${applicant.id}`}>
                       Update Application Status
@@ -639,7 +700,6 @@ function Applicants() {
                     )}
                   </div>
 
-                  {/* ATS Resume Evaluation */}
                   <div className="applicant-ats-section">
                     <button
                       type="button"
@@ -673,7 +733,6 @@ function Applicants() {
                             <div className="ats-result-header">
                               <div>
                                 <h3>ATS Resume Evaluation</h3>
-
                                 <p>
                                   Resume: {atsResult.resume_title}
                                 </p>
@@ -683,8 +742,7 @@ function Applicants() {
                                 <strong>
                                   {evaluation.ats_score}%
                                 </strong>
-
-                                <span>Skill Match</span>
+                                <span>Overall Match</span>
                               </div>
                             </div>
 
@@ -693,7 +751,6 @@ function Applicants() {
                                 <strong>
                                   {evaluation.total_required_skills}
                                 </strong>
-
                                 <span>Required Skills</span>
                               </div>
 
@@ -701,7 +758,6 @@ function Applicants() {
                                 <strong>
                                   {evaluation.matched_count}
                                 </strong>
-
                                 <span>Matched Skills</span>
                               </div>
 
@@ -709,16 +765,21 @@ function Applicants() {
                                 <strong>
                                   {evaluation.missing_count}
                                 </strong>
-
                                 <span>Missing Skills</span>
                               </div>
                             </div>
+
+                            {renderScoreBreakdown(
+                              evaluation.score_breakdown
+                            )}
 
                             <div className="ats-skill-groups">
                               <div className="ats-skill-group">
                                 <h4>Matched Skills</h4>
 
-                                {evaluation.matched_skills.length > 0 ? (
+                                {(
+                                  evaluation.matched_skills || []
+                                ).length > 0 ? (
                                   <div className="ats-skill-list">
                                     {evaluation.matched_skills.map(
                                       (skill) => (
@@ -739,7 +800,9 @@ function Applicants() {
                               <div className="ats-skill-group">
                                 <h4>Missing Skills</h4>
 
-                                {evaluation.missing_skills.length > 0 ? (
+                                {(
+                                  evaluation.missing_skills || []
+                                ).length > 0 ? (
                                   <div className="ats-skill-list">
                                     {evaluation.missing_skills.map(
                                       (skill) => (
@@ -758,6 +821,60 @@ function Applicants() {
                               </div>
                             </div>
 
+                            <div className="ats-additional-grid">
+                              <div className="ats-info-card">
+                                <h4>Experience Information</h4>
+                                <p>
+                                  <strong>
+                                    {evaluation.experience_years ?? 0}
+                                  </strong>{" "}
+                                  years of experience detected
+                                </p>
+                                <p>
+                                  Experience records:{" "}
+                                  {evaluation.experience_records_count ?? 0}
+                                </p>
+                              </div>
+
+                              <div className="ats-info-card">
+                                <h4>Education Information</h4>
+                                <p>
+                                  Education records:{" "}
+                                  {evaluation.education_records_count ?? 0}
+                                </p>
+
+                                <p>
+                                  Education score:{" "}
+                                  {evaluation.score_breakdown?.education
+                                    ?.available
+                                    ? `${evaluation.score_breakdown.education.score}%`
+                                    : "Not available"}
+                                </p>
+                              </div>
+                            </div>
+
+                            {renderListSection(
+                              "Matched Job Keywords",
+                              evaluation.matched_keywords,
+                              "No matching job keywords detected."
+                            )}
+
+                            {renderProficiencyDetails(
+                              evaluation.proficiency_details
+                            )}
+
+                            {renderListSection(
+                              "Resume Strengths",
+                              evaluation.strengths,
+                              "No additional strengths identified."
+                            )}
+
+                            {renderListSection(
+                              "Improvement Suggestions",
+                              evaluation.improvement_suggestions,
+                              "No improvement suggestions available."
+                            )}
+
                             <p className="ats-disclaimer">
                               {atsResult.message}
                             </p>
@@ -767,7 +884,6 @@ function Applicants() {
                     )}
                   </div>
 
-                  {/* Application Timeline */}
                   <div className="applicant-timeline-section">
                     <button
                       type="button"
