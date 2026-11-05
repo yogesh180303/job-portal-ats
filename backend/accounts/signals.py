@@ -1,11 +1,21 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from .models import Job, JobAlert, JobAlertMatch, Notification
+from .models import (
+    Application,
+    Job,
+    JobAlert,
+    JobAlertMatch,
+    Notification,
+)
 
+
+# --------------------------------------------------
+# JOB ALERT MATCHING
+# --------------------------------------------------
 
 def job_matches_alert(job, alert):
     # Match keywords against the job title, description and requirements.
@@ -83,7 +93,6 @@ def process_job_alerts(job):
                     ),
                 )
 
-                # Record successful in-app notification creation.
                 match.notification_sent = True
                 match.save(update_fields=["notification_sent"])
 
@@ -133,3 +142,203 @@ def process_job_alerts(job):
 def trigger_job_alerts(sender, instance, **kwargs):
     if instance.status == Job.Status.PUBLISHED:
         process_job_alerts(instance)
+
+
+# --------------------------------------------------
+# APPLICATION EMAIL HELPERS
+# --------------------------------------------------
+
+def send_new_application_email(application_id):
+    try:
+        application = (
+            Application.objects
+            .select_related(
+                "candidate",
+                "job",
+                "job__recruiter",
+            )
+            .get(pk=application_id)
+        )
+
+        recruiter = application.job.recruiter
+
+        if not recruiter.email:
+            return
+
+        subject = (
+            f"New Application Received: {application.job.title}"
+        )
+
+        message = (
+            f"Hello {recruiter.username},\n\n"
+            f"You have received a new application for your job.\n\n"
+            f"Job Title: {application.job.title}\n"
+            f"Company: {application.job.company_name}\n"
+            f"Candidate: {application.candidate.username}\n"
+            f"Candidate Email: {application.candidate.email}\n"
+            f"Application ID: {application.id}\n"
+            f"Applied At: {application.applied_at}\n\n"
+            f"Log in to CareerHub to review the application.\n\n"
+            f"Regards,\nCareerHub Team"
+        )
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recruiter.email],
+            fail_silently=False,
+        )
+
+    except Exception:
+        # Email failure must not interrupt application creation.
+        pass
+
+
+def send_application_status_email(
+    application_id,
+    old_status,
+    new_status,
+):
+    try:
+        application = (
+            Application.objects
+            .select_related(
+                "candidate",
+                "job",
+            )
+            .get(pk=application_id)
+        )
+
+        candidate = application.candidate
+
+        if not candidate.email:
+            return
+
+        old_status_display = (
+            Application.Status(old_status).label
+            if old_status
+            else "Not available"
+        )
+
+        new_status_display = (
+            Application.Status(new_status).label
+        )
+
+        subject = (
+            f"Application Update: {application.job.title}"
+        )
+
+        message = (
+            f"Hello {candidate.username},\n\n"
+            f"Your job application has been updated.\n\n"
+            f"Job Title: {application.job.title}\n"
+            f"Company: {application.job.company_name}\n"
+            f"Previous Status: {old_status_display}\n"
+            f"New Status: {new_status_display}\n"
+            f"Application ID: {application.id}\n\n"
+            f"Log in to CareerHub to view your application details.\n\n"
+            f"Regards,\nCareerHub Team"
+        )
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[candidate.email],
+            fail_silently=False,
+        )
+
+    except Exception:
+        # Email failure must not interrupt status updates.
+        pass
+
+
+# --------------------------------------------------
+# APPLICATION STATUS CHANGE DETECTION
+# --------------------------------------------------
+
+@receiver(pre_save, sender=Application)
+def remember_previous_application_status(
+    sender,
+    instance,
+    **kwargs,
+):
+    if not instance.pk:
+        instance._previous_status = None
+        return
+
+    try:
+        previous_application = Application.objects.only(
+            "status"
+        ).get(pk=instance.pk)
+
+        instance._previous_status = previous_application.status
+
+    except Application.DoesNotExist:
+        instance._previous_status = None
+
+
+# --------------------------------------------------
+# APPLICATION NOTIFICATIONS
+# --------------------------------------------------
+
+@receiver(post_save, sender=Application)
+def handle_application_notifications(
+    sender,
+    instance,
+    created,
+    **kwargs,
+):
+    # A new application has been submitted.
+    if created:
+        recruiter = instance.job.recruiter
+
+        Notification.objects.create(
+            recipient=recruiter,
+            notification_type=(
+                Notification.NotificationType.NEW_APPLICATION
+            ),
+            title="New Job Application Received",
+            message=(
+                f"{instance.candidate.username} has applied "
+                f"for your job: {instance.job.title}. "
+                f"Application ID: {instance.id}."
+            ),
+            application=instance,
+        )
+
+        # Send the recruiter's email after the database commits.
+        transaction.on_commit(
+            lambda application_id=instance.pk: (
+                send_new_application_email(application_id)
+            )
+        )
+
+        return
+
+    # An existing application's status has changed.
+    old_status = getattr(
+        instance,
+        "_previous_status",
+        None,
+    )
+
+    new_status = instance.status
+
+    if old_status and old_status != new_status:
+        # The existing application view already creates the
+        # candidate's in-app status notification.
+
+        # Send the status update email after the database commits.
+        transaction.on_commit(
+            lambda application_id=instance.pk,
+            previous=old_status,
+            current=new_status: (
+                send_application_status_email(
+                    application_id,
+                    previous,
+                    current,
+                )
+            )
+        )

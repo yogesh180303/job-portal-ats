@@ -287,6 +287,10 @@ class Notification(models.Model):
             "APPLICATION_STATUS",
             "Application Status Update",
         )
+        NEW_APPLICATION = (
+            "NEW_APPLICATION",
+            "New Job Application",
+        )
         JOB_ALERT = (
             "JOB_ALERT",
             "New Job Alert",

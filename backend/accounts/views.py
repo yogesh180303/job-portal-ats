@@ -922,21 +922,26 @@ def application_ats_evaluation(request, pk):
     })
 
 
-# Phase 11: Notification APIs
+# Phase 11 and Phase 23: Notification APIs
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def notification_list(request):
-    # Only candidates can access their notifications.
-    if request.user.role != "CANDIDATE":
+    # Candidates and recruiters can access their own notifications.
+    if request.user.role not in ["CANDIDATE", "RECRUITER"]:
         return Response(
-            {"detail": "Only candidates can access notifications."},
+            {
+                "detail": (
+                    "Only candidates and recruiters "
+                    "can access notifications."
+                )
+            },
             status=status.HTTP_403_FORBIDDEN,
         )
 
     notifications = Notification.objects.filter(
         recipient=request.user
-    )
+    ).order_by("-created_at")
 
     serializer = NotificationSerializer(
         notifications,
@@ -957,10 +962,15 @@ def notification_list(request):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def notification_detail(request, pk):
-    # Only candidates can mark notifications as read.
-    if request.user.role != "CANDIDATE":
+    # Candidates and recruiters can mark their own notifications as read.
+    if request.user.role not in ["CANDIDATE", "RECRUITER"]:
         return Response(
-            {"detail": "Only candidates can update notifications."},
+            {
+                "detail": (
+                    "Only candidates and recruiters "
+                    "can update notifications."
+                )
+            },
             status=status.HTTP_403_FORBIDDEN,
         )
 

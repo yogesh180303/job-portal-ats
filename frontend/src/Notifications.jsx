@@ -90,6 +90,16 @@ function Notifications() {
     }
   };
 
+  const getNotificationType = (type) => {
+    const types = {
+      NEW_APPLICATION: "New Job Application",
+      APPLICATION_STATUS: "Application Status Update",
+      JOB_ALERT: "Job Alert",
+    };
+
+    return types[type] || "Notification";
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
@@ -109,9 +119,12 @@ function Notifications() {
       <main className="notifications-content">
         <section className="notifications-heading">
           <span className="eyebrow">YOUR ACTIVITY</span>
+
           <h1>Notifications</h1>
+
           <p>
-            Stay updated about changes to your job applications.
+            Stay updated about new job applications, application
+            status changes, and job opportunities.
           </p>
         </section>
 
@@ -140,9 +153,12 @@ function Notifications() {
         ) : notifications.length === 0 ? (
           <section className="notification-empty">
             <div className="notification-empty-icon">🔔</div>
+
             <h2>No notifications yet</h2>
+
             <p>
-              Updates about your job applications will appear here.
+              Updates about your job applications and activity
+              will appear here.
             </p>
           </section>
         ) : (
@@ -157,8 +173,11 @@ function Notifications() {
                 <div className="notification-card-top">
                   <div>
                     <span className="notification-type">
-                      Application Update
+                      {getNotificationType(
+                        notification.notification_type
+                      )}
                     </span>
+
                     <h2>{notification.title}</h2>
                   </div>
 
@@ -182,7 +201,9 @@ function Notifications() {
                     <button
                       type="button"
                       className="button button-primary"
-                      onClick={() => handleMarkAsRead(notification.id)}
+                      onClick={() =>
+                        handleMarkAsRead(notification.id)
+                      }
                       disabled={updatingId === notification.id}
                     >
                       {updatingId === notification.id
