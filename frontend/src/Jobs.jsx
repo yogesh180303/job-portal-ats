@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./Jobs.css";
 
@@ -38,6 +37,7 @@ function Jobs() {
 
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
+  const [applicationStatuses, setApplicationStatuses] = useState({});
 
   const [savedJobs, setSavedJobs] = useState([]);
   const [savingJobId, setSavingJobId] = useState(null);
@@ -93,6 +93,37 @@ function Jobs() {
         await fetchJobs();
 
         if (profileData.role === "CANDIDATE") {
+          // Load the candidate's existing applications so applied jobs
+          // remain marked after a page refresh.
+          const applicationsResponse = await fetch(
+            `${API_URL}/applications/`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const applicationsData = await applicationsResponse.json();
+
+          if (!applicationsResponse.ok) {
+            throw new Error(
+              "Unable to load your applications."
+            );
+          }
+
+          setAppliedJobIds(
+            applicationsData.map((application) => application.job)
+          );
+
+          setApplicationStatuses(
+            applicationsData.reduce((statuses, application) => {
+              statuses[application.job] = application.status;
+              return statuses;
+            }, {})
+          );
+
           const savedJobsResponse = await fetch(
             `${API_URL}/saved-jobs/`,
             {
@@ -377,7 +408,15 @@ function Jobs() {
         );
       }
 
-      setAppliedJobIds((previous) => [...previous, jobId]);
+      setAppliedJobIds((previous) =>
+        previous.includes(jobId) ? previous : [...previous, jobId]
+      );
+
+      setApplicationStatuses((previous) => ({
+        ...previous,
+        [jobId]: data.status || "APPLIED",
+      }));
+
       setMessage("Your application was submitted successfully.");
     } catch (error) {
       setErrorMessage(error.message);
@@ -936,7 +975,7 @@ function Jobs() {
                           {applyingJobId === job.id
                             ? "Applying..."
                             : appliedJobIds.includes(job.id)
-                              ? "Applied"
+                              ? `Applied${applicationStatuses[job.id] ? ` · ${applicationStatuses[job.id].replaceAll("_", " ")}` : ""}`
                               : "Apply Now"}
                         </button>
 
