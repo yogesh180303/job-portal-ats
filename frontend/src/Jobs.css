@@ -1,3 +1,4 @@
+
 /* Main Jobs Page */
 
 .jobs-section {
@@ -153,6 +154,97 @@
   margin-top: 8px;
 }
 
+/* Phase 15: Job Search and Filters */
+
+.jobs-filter-card {
+  margin: 35px 0;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.jobs-filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.jobs-filter-heading h2 {
+  margin-bottom: 7px;
+  color: var(--heading);
+  font-size: 21px;
+}
+
+.jobs-filter-heading p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.jobs-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.filter-group label {
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0f172a;
+  color: var(--heading);
+  font-family: inherit;
+  font-size: 14px;
+  color-scheme: dark;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.filter-group input::placeholder {
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+.filter-group select {
+  cursor: pointer;
+}
+
+.filter-group select option {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.filter-search {
+  grid-column: 1 / -1;
+}
+
 /* Job Listings Header */
 
 .jobs-list-header {
@@ -191,6 +283,7 @@
 }
 
 .empty-jobs p {
+  margin-bottom: 18px;
   color: var(--text-muted);
   font-size: 14px;
   line-height: 1.7;
@@ -342,6 +435,10 @@
   .managed-jobs-grid {
     grid-template-columns: 1fr;
   }
+
+  .jobs-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 600px) {
@@ -356,6 +453,28 @@
   .form-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+
+  .jobs-filter-card {
+    padding: 20px;
+  }
+
+  .jobs-filter-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .filter-search {
+    grid-column: auto;
+  }
+
+  .jobs-filter-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .jobs-filter-heading button {
+    width: 100%;
   }
 
   .managed-job-card {

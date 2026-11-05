@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./Jobs.css";
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -13,6 +14,14 @@ const emptyForm = {
   salary_min: "",
   salary_max: "",
   status: "DRAFT",
+};
+
+const emptyFilters = {
+  search: "",
+  location: "",
+  jobType: "",
+  minSalary: "",
+  maxSalary: "",
 };
 
 function Jobs() {
@@ -30,9 +39,11 @@ function Jobs() {
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
 
-  // Phase 12: Saved Jobs state
   const [savedJobs, setSavedJobs] = useState([]);
   const [savingJobId, setSavingJobId] = useState(null);
+
+  // Phase 15: Job search and filtering.
+  const [filters, setFilters] = useState(emptyFilters);
 
   const token = sessionStorage.getItem("accessToken");
 
@@ -81,7 +92,6 @@ function Jobs() {
 
         await fetchJobs();
 
-        // Load saved jobs for candidates.
         if (profileData.role === "CANDIDATE") {
           const savedJobsResponse = await fetch(
             `${API_URL}/saved-jobs/`,
@@ -122,6 +132,83 @@ function Jobs() {
     }));
   };
 
+  // Update search and filter values.
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+
+    setFilters((previousFilters) => ({
+      ...previousFilters,
+      [name]: value,
+    }));
+  };
+
+  // Reset all search filters.
+  const clearFilters = () => {
+    setFilters(emptyFilters);
+  };
+
+  // Apply search and filters to the available jobs.
+  const filteredJobs = useMemo(() => {
+    const searchTerm = filters.search.trim().toLowerCase();
+    const locationTerm = filters.location.trim().toLowerCase();
+
+    const minimumSalary =
+      filters.minSalary === ""
+        ? null
+        : Number(filters.minSalary);
+
+    const maximumSalary =
+      filters.maxSalary === ""
+        ? null
+        : Number(filters.maxSalary);
+
+    return jobs.filter((job) => {
+      // Search by job title or company name.
+      const matchesSearch =
+        !searchTerm ||
+        job.title?.toLowerCase().includes(searchTerm) ||
+        job.company_name?.toLowerCase().includes(searchTerm);
+
+      // Filter by location.
+      const matchesLocation =
+        !locationTerm ||
+        job.location?.toLowerCase().includes(locationTerm);
+
+      // Filter by job type.
+      const matchesJobType =
+        !filters.jobType ||
+        job.job_type === filters.jobType;
+
+      // Filter by minimum expected salary.
+      const jobMinimum =
+        job.salary_min === null || job.salary_min === ""
+          ? null
+          : Number(job.salary_min);
+
+      const jobMaximum =
+        job.salary_max === null || job.salary_max === ""
+          ? null
+          : Number(job.salary_max);
+
+      const matchesMinimumSalary =
+        minimumSalary === null ||
+        (jobMaximum !== null && jobMaximum >= minimumSalary);
+
+      // Filter by maximum expected salary.
+      const matchesMaximumSalary =
+        maximumSalary === null ||
+        (jobMinimum !== null && jobMinimum <= maximumSalary);
+
+      return (
+        matchesSearch &&
+        matchesLocation &&
+        matchesJobType &&
+        matchesMinimumSalary &&
+        matchesMaximumSalary
+      );
+    });
+  }, [jobs, filters]);
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditingJobId(null);
@@ -136,6 +223,17 @@ function Jobs() {
     if (!user || !["RECRUITER", "ADMIN"].includes(user.role)) {
       setErrorMessage(
         "You do not have permission to manage jobs."
+      );
+      return;
+    }
+
+    if (
+      form.salary_min !== "" &&
+      form.salary_max !== "" &&
+      Number(form.salary_min) > Number(form.salary_max)
+    ) {
+      setErrorMessage(
+        "Minimum salary cannot be greater than maximum salary."
       );
       return;
     }
@@ -288,7 +386,7 @@ function Jobs() {
     }
   };
 
-  // Phase 12: Save or remove a saved job.
+  // Save or remove a saved job.
   const handleSaveJob = async (jobId) => {
     setMessage("");
     setErrorMessage("");
@@ -300,7 +398,6 @@ function Jobs() {
 
     try {
       if (existingSavedJob) {
-        // Remove the saved job.
         const response = await fetch(
           `${API_URL}/saved-jobs/${existingSavedJob.id}/`,
           {
@@ -328,7 +425,6 @@ function Jobs() {
 
         setMessage("Job removed from your saved jobs.");
       } else {
-        // Save the job.
         const response = await fetch(`${API_URL}/saved-jobs/`, {
           method: "POST",
           headers: {
@@ -441,6 +537,10 @@ function Jobs() {
 
     return labels[jobType] || jobType;
   };
+
+  const hasActiveFilters = Object.values(filters).some(
+    (value) => value !== ""
+  );
 
   if (isLoading) {
     return (
@@ -645,6 +745,107 @@ function Jobs() {
             </div>
           )}
 
+        {/* Phase 15: Search and Filters */}
+        <div className="jobs-filter-card">
+          <div className="jobs-filter-heading">
+            <div>
+              <h2>Find the Right Job</h2>
+              <p>
+                Search and filter opportunities using your preferences.
+              </p>
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                className="button button-outline"
+                type="button"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          <div className="jobs-filter-grid">
+            <div className="filter-group filter-search">
+              <label htmlFor="filter-search">
+                Search Jobs
+              </label>
+              <input
+                id="filter-search"
+                name="search"
+                type="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                placeholder="Search by job title or company..."
+              />
+            </div>
+
+            <div className="filter-group">
+              <label htmlFor="filter-location">
+                Location
+              </label>
+              <input
+                id="filter-location"
+                name="location"
+                type="text"
+                value={filters.location}
+                onChange={handleFilterChange}
+                placeholder="Enter location..."
+              />
+            </div>
+
+            <div className="filter-group">
+              <label htmlFor="filter-job-type">
+                Job Type
+              </label>
+              <select
+                id="filter-job-type"
+                name="jobType"
+                value={filters.jobType}
+                onChange={handleFilterChange}
+              >
+                <option value="">All Job Types</option>
+                <option value="FULL_TIME">Full-time</option>
+                <option value="PART_TIME">Part-time</option>
+                <option value="INTERNSHIP">Internship</option>
+                <option value="CONTRACT">Contract</option>
+                <option value="REMOTE">Remote</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label htmlFor="filter-min-salary">
+                Minimum Salary (₹)
+              </label>
+              <input
+                id="filter-min-salary"
+                name="minSalary"
+                type="number"
+                min="0"
+                value={filters.minSalary}
+                onChange={handleFilterChange}
+                placeholder="e.g. 300000"
+              />
+            </div>
+
+            <div className="filter-group">
+              <label htmlFor="filter-max-salary">
+                Maximum Salary (₹)
+              </label>
+              <input
+                id="filter-max-salary"
+                name="maxSalary"
+                type="number"
+                min="0"
+                value={filters.maxSalary}
+                onChange={handleFilterChange}
+                placeholder="e.g. 800000"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="jobs-list-header">
           <div>
             <h2>
@@ -653,22 +854,38 @@ function Jobs() {
                 : "Job Listings"}
             </h2>
             <p>
-              {jobs.length}{" "}
+              {filteredJobs.length} of {jobs.length}{" "}
               {jobs.length === 1 ? "job" : "jobs"} found
             </p>
           </div>
         </div>
 
-        {jobs.length === 0 ? (
+        {filteredJobs.length === 0 ? (
           <div className="empty-jobs">
-            <h3>No jobs found</h3>
+            <h3>
+              {hasActiveFilters
+                ? "No matching jobs found"
+                : "No jobs found"}
+            </h3>
             <p>
-              There are currently no jobs available to display.
+              {hasActiveFilters
+                ? "Try changing your search terms or clearing the filters."
+                : "There are currently no jobs available to display."}
             </p>
+
+            {hasActiveFilters && (
+              <button
+                className="button button-outline"
+                type="button"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="managed-jobs-grid">
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <article className="managed-job-card" key={job.id}>
                 <div className="managed-job-top">
                   <div>
@@ -756,10 +973,7 @@ function Jobs() {
                           className="button button-primary"
                           type="button"
                           onClick={() =>
-                            handleStatusChange(
-                              job,
-                              "PUBLISHED"
-                            )
+                            handleStatusChange(job, "PUBLISHED")
                           }
                         >
                           Publish
