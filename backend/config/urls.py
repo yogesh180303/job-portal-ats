@@ -1,4 +1,4 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
@@ -34,6 +34,7 @@ from accounts.views import (
 from accounts.public_company_views import (
     public_company_list,
     public_company_detail,
+    public_job_detail,
 )
 
 
@@ -45,16 +46,22 @@ urlpatterns = [
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("api/auth/me/", user_profile, name="user-profile"),
     path("api/auth/profile/", candidate_profile, name="candidate-profile"),
+
     path("api/education/", education_list_create, name="education-list-create"),
     path("api/education/<int:pk>/", education_detail, name="education-detail"),
+
     path("api/experience/", experience_list_create, name="experience-list-create"),
     path("api/experience/<int:pk>/", experience_detail, name="experience-detail"),
+
     path("api/skills/", skill_list_create, name="skill-list-create"),
     path("api/skills/<int:pk>/", skill_detail, name="skill-detail"),
+
     path("api/resumes/", resume_list_create, name="resume-list-create"),
     path("api/resumes/<int:pk>/", resume_detail, name="resume-detail"),
+
     path("api/jobs/", job_list_create, name="job-list-create"),
     path("api/jobs/<int:pk>/", job_detail, name="job-detail"),
+
     path("api/applications/", application_list_create, name="application-list-create"),
     path("api/applications/<int:pk>/", application_detail, name="application-detail"),
     path("api/applications/<int:pk>/timeline/", application_timeline, name="application-timeline"),
@@ -74,6 +81,9 @@ urlpatterns = [
     # Phase 20: Public Company APIs
     path("api/companies/", public_company_list, name="public-company-list"),
     path("api/companies/<int:pk>/", public_company_detail, name="public-company-detail"),
+
+    # Phase 21: Public Job Details API
+    path("api/public-jobs/<int:pk>/", public_job_detail, name="public-job-detail"),
 ]
 
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./PublicCompanyProfile.css";
 
@@ -57,6 +57,14 @@ function PublicCompanyProfile() {
     if (Number.isNaN(date.getTime())) return "";
 
     return date.toLocaleDateString();
+  };
+
+  const formatSalary = (salary) => {
+    if (salary === null || salary === undefined) {
+      return "Not specified";
+    }
+
+    return `₹${Number(salary).toLocaleString("en-IN")}`;
   };
 
   if (loading) {
@@ -192,7 +200,14 @@ function PublicCompanyProfile() {
               {company.jobs.map((job) => (
                 <article className="public-company-job-card" key={job.id}>
                   <div className="public-company-job-main">
-                    <h3>{job.title}</h3>
+                    <h3>
+                      <Link
+                        to={`/job-details/${job.id}`}
+                        className="public-company-job-title-link"
+                      >
+                        {job.title}
+                      </Link>
+                    </h3>
 
                     <p className="public-company-job-company">
                       {company.company_name}
@@ -216,15 +231,19 @@ function PublicCompanyProfile() {
 
                     {(job.salary_min || job.salary_max) && (
                       <p className="public-company-job-salary">
-                        Salary: {job.salary_min || "Not specified"}
+                        Salary: {formatSalary(job.salary_min)}
                         {" - "}
-                        {job.salary_max || "Not specified"}
+                        {formatSalary(job.salary_max)}
                       </p>
                     )}
                   </div>
 
                   <div className="public-company-job-action">
-                    <Link to="/login">
+                    <Link to={`/job-details/${job.id}`}>
+                      View Job Details
+                    </Link>
+
+                    <Link to="/login" className="public-company-apply-link">
                       Sign in to apply
                     </Link>
                   </div>

@@ -16,6 +16,7 @@ import SavedJobs from "./SavedJobs";
 import CompanyProfile from "./CompanyProfile";
 import Companies from "./Companies";
 import PublicCompanyProfile from "./PublicCompanyProfile";
+import PublicJobDetails from "./PublicJobDetails";
 import './App.css'
 
 const sampleJobs = [
@@ -93,6 +94,12 @@ function App() {
       <Route
         path="/companies/:id"
         element={<PublicCompanyProfile />}
+      />
+
+      {/* Phase 21: Public Job Details */}
+      <Route
+        path="/job-details/:id"
+        element={<PublicJobDetails />}
       />
 
       <Route
