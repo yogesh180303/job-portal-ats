@@ -28,6 +28,186 @@
   line-height: 1.7;
 }
 
+.dashboard-section {
+  margin-bottom: 30px;
+}
+
+.dashboard-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-section-heading h2 {
+  margin: 8px 0 0;
+  color: var(--heading);
+  font-size: 23px;
+}
+
+.dashboard-text-link {
+  color: #60a5fa;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dashboard-text-link:hover {
+  text-decoration: underline;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard-stat-card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.dashboard-stat-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.dashboard-stat-card strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--heading);
+  font-size: 30px;
+}
+
+.dashboard-progress-card {
+  padding: 25px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.dashboard-completion-value {
+  color: #60a5fa;
+  font-size: 26px;
+}
+
+.dashboard-progress-track {
+  width: 100%;
+  height: 11px;
+  margin: 22px 0 15px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.dashboard-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  transition: width 0.4s ease;
+}
+
+.dashboard-progress-card > p {
+  margin-bottom: 18px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.dashboard-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.dashboard-applications-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dashboard-applications-table th,
+.dashboard-applications-table td {
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.dashboard-applications-table th {
+  color: var(--heading);
+  font-weight: 600;
+}
+
+.dashboard-applications-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-applications-table tbody td:first-child {
+  color: var(--heading);
+  font-weight: 600;
+}
+
+.dashboard-status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dashboard-status-applied,
+.dashboard-status-under_review {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.dashboard-status-shortlisted {
+  background: rgba(168, 85, 247, 0.15);
+  color: #d8b4fe;
+}
+
+.dashboard-status-interview {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fde047;
+}
+
+.dashboard-status-selected {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+.dashboard-status-rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.dashboard-empty-state {
+  padding: 35px 25px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+  text-align: center;
+}
+
+.dashboard-empty-state h3 {
+  color: var(--heading);
+}
+
+.dashboard-empty-state p {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -82,7 +262,8 @@
 }
 
 @media (max-width: 800px) {
-  .dashboard-grid {
+  .dashboard-grid,
+  .dashboard-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -93,11 +274,21 @@
     width: calc(100% - 32px);
   }
 
-  .dashboard-grid {
+  .dashboard-grid,
+  .dashboard-stats-grid {
     grid-template-columns: 1fr;
   }
 
   .dashboard-actions {
     flex-direction: column;
+  }
+
+  .dashboard-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-progress-card {
+    padding: 20px;
   }
 }
