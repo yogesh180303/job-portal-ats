@@ -12,6 +12,7 @@ from .models import (
     Job,
     Application,
     ApplicationStatusHistory,
+    Notification,
 )
 
 
@@ -128,7 +129,8 @@ class WorkExperienceSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-        
+
+
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
@@ -144,6 +146,7 @@ class SkillSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         return value.strip()
 
+
 class ResumeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resume
@@ -156,6 +159,7 @@ class ResumeSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
 
 class JobSerializer(serializers.ModelSerializer):
     recruiter_name = serializers.CharField(
@@ -209,8 +213,8 @@ class JobSerializer(serializers.ModelSerializer):
             )
 
         return data
-    
-    
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     candidate_name = serializers.CharField(
         source="candidate.username",
@@ -252,6 +256,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+
 class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
     changed_by_name = serializers.CharField(
         source="changed_by.username",
@@ -272,3 +277,32 @@ class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class NotificationSerializer(serializers.ModelSerializer):
+    application_id = serializers.IntegerField(
+        source="application.id",
+        read_only=True,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Notification
+        fields = [
+            "id",
+            "notification_type",
+            "title",
+            "message",
+            "application",
+            "application_id",
+            "is_read",
+            "created_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "notification_type",
+            "title",
+            "message",
+            "application",
+            "application_id",
+            "created_at",
+        ]

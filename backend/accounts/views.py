@@ -16,9 +16,10 @@ from .serializers import (
     ResumeSerializer,
     JobSerializer,
     ApplicationSerializer,
+    NotificationSerializer,
 )
 
-
+from .models import Notification
 @api_view(["GET"])
 def health_check(request):
     return Response({
@@ -652,10 +653,15 @@ def application_list_create(request):
     )
 
 
+
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def application_detail(request, pk):
-    from .models import Application, ApplicationStatusHistory
+    from .models import (
+        Application,
+        ApplicationStatusHistory,
+        Notification,
+    )
 
     try:
         application = Application.objects.get(pk=pk)
@@ -733,9 +739,27 @@ def application_detail(request, pk):
         application.status = new_status
         application.save(update_fields=["status", "updated_at"])
 
+        status_display = application.get_status_display()
+
+        Notification.objects.create(
+            recipient=application.candidate,
+            notification_type=(
+                Notification.NotificationType.APPLICATION_STATUS
+            ),
+            title="Application Status Updated",
+            message=(
+                f"Your application for "
+                f"{application.job.title} at "
+                f"{application.job.company_name} "
+                f"has been updated to {status_display}."
+            ),
+            application=application,
+        )
+
     serializer = ApplicationSerializer(application)
 
     return Response(serializer.data)
+
 
 
 # Application Timeline API
@@ -862,3 +886,68 @@ def application_ats_evaluation(request, pk):
             "It is not an automatic hiring decision."
         ),
     })
+
+
+# Phase 11: Notification APIs
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def notification_list(request):
+    # Only candidates can access their notifications.
+    if request.user.role != "CANDIDATE":
+        return Response(
+            {"detail": "Only candidates can access notifications."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    notifications = Notification.objects.filter(
+        recipient=request.user
+    )
+
+    serializer = NotificationSerializer(
+        notifications,
+        many=True,
+    )
+
+    unread_count = notifications.filter(
+        is_read=False
+    ).count()
+
+    return Response({
+        "unread_count": unread_count,
+        "total_count": notifications.count(),
+        "notifications": serializer.data,
+    })
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def notification_detail(request, pk):
+    # Only candidates can mark notifications as read.
+    if request.user.role != "CANDIDATE":
+        return Response(
+            {"detail": "Only candidates can update notifications."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        notification = Notification.objects.get(
+            pk=pk,
+            recipient=request.user,
+        )
+    except Notification.DoesNotExist:
+        return Response(
+            {"detail": "Notification not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    notification.is_read = True
+    notification.save(update_fields=["is_read"])
+
+    serializer = NotificationSerializer(notification)
+
+    return Response({
+        "message": "Notification marked as read.",
+        "notification": serializer.data,
+    })
+

@@ -6,6 +6,7 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const navigate = useNavigate();
 
@@ -35,6 +36,21 @@ function Dashboard() {
 
         const data = await response.json();
         setUser(data);
+        if (data.role === "CANDIDATE") {
+  const notificationResponse = await fetch(
+    "http://127.0.0.1:8000/api/notifications/",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (notificationResponse.ok) {
+    const notificationData = await notificationResponse.json();
+    setUnreadNotifications(notificationData.unread_count || 0);
+  }
+}
       } catch (err) {
         setError(err.message);
       } finally {
@@ -108,6 +124,19 @@ function Dashboard() {
         </section>
 
         <section className="dashboard-grid">
+          {user.role === "CANDIDATE" && (
+  <article className="dashboard-card">
+    <div className="dashboard-icon">🔔</div>
+    <h2>Notifications</h2>
+    <p>
+      You have {unreadNotifications} unread notification(s)
+      about your job applications.
+    </p>
+    <Link to="/notifications" className="button button-primary">
+      View Notifications
+    </Link>
+  </article>
+)}
           <article className="dashboard-card">
   <div className="dashboard-icon">📄</div>
   <h2>My Applications</h2>

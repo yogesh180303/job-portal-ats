@@ -24,6 +24,8 @@ from accounts.views import (
     application_detail,
     application_timeline,
     application_ats_evaluation,
+    notification_list,
+    notification_detail,
 )
 
 
@@ -147,6 +149,19 @@ path(
     application_ats_evaluation,
     name="application-ats-evaluation",
 ),
+    # Phase 11: Notification APIs
+
+    path(
+        "api/notifications/",
+        notification_list,
+        name="notification-list",
+    ),
+
+    path(
+        "api/notifications/<int:pk>/",
+        notification_detail,
+        name="notification-detail",
+    ),
 
 ]
 
