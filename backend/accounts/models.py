@@ -287,6 +287,10 @@ class Notification(models.Model):
             "APPLICATION_STATUS",
             "Application Status Update",
         )
+        JOB_ALERT = (
+            "JOB_ALERT",
+            "New Job Alert",
+        )
 
     recipient = models.ForeignKey(
         User,
@@ -383,3 +387,73 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+
+
+class JobAlert(models.Model):
+    candidate = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="job_alerts",
+    )
+
+    keywords = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Job title or keywords to match.",
+    )
+
+    location = models.CharField(max_length=200, blank=True)
+
+    job_type = models.CharField(
+        max_length=20,
+        choices=Job.JobType.choices,
+        blank=True,
+    )
+
+    minimum_salary = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    email_notifications = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Job alert for {self.candidate.username}"
+
+
+class JobAlertMatch(models.Model):
+    alert = models.ForeignKey(
+        JobAlert,
+        on_delete=models.CASCADE,
+        related_name="matches",
+    )
+
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="job_alert_matches",
+    )
+
+    notification_sent = models.BooleanField(default=False)
+    email_sent = models.BooleanField(default=False)
+
+    matched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-matched_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alert", "job"],
+                name="unique_job_alert_match",
+            )
+        ]
+
+    def __str__(self):
+        return f"Alert #{self.alert_id} matched Job #{self.job_id}"

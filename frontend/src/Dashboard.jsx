@@ -693,6 +693,17 @@ function Dashboard() {
                   Manage Resumes
                 </Link>
               </article>
+                            <article className="dashboard-card">
+                <div className="dashboard-icon">🔔</div>
+                <h2>Job Alerts</h2>
+                <p>
+                  Create and manage job alerts to get notified about matching
+                  opportunities through in-app and email notifications.
+                </p>
+                <Link to="/job-alerts" className="button button-primary">
+                  Manage Job Alerts
+                </Link>
+              </article>
             </>
           )}
 

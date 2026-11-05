@@ -31,6 +31,11 @@ from accounts.views import (
     company_profile,
 )
 
+from accounts.job_alert_views import (
+    job_alert_list_create,
+    job_alert_detail,
+)
+
 from accounts.public_company_views import (
     public_company_list,
     public_company_detail,
@@ -52,7 +57,6 @@ urlpatterns = [
 
     path("api/experience/", experience_list_create, name="experience-list-create"),
     path("api/experience/<int:pk>/", experience_detail, name="experience-detail"),
-
     path("api/skills/", skill_list_create, name="skill-list-create"),
     path("api/skills/<int:pk>/", skill_detail, name="skill-detail"),
 
@@ -84,6 +88,10 @@ urlpatterns = [
 
     # Phase 21: Public Job Details API
     path("api/public-jobs/<int:pk>/", public_job_detail, name="public-job-detail"),
+
+    # Phase 22: Job Alerts APIs
+    path("api/job-alerts/", job_alert_list_create, name="job-alert-list-create"),
+    path("api/job-alerts/<int:pk>/", job_alert_detail, name="job-alert-detail"),
 ]
 
 

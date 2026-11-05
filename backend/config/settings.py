@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 # --------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-MEDIA_URL = "/media/"
 
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 load_dotenv(BASE_DIR / ".env")
@@ -34,9 +34,47 @@ if not SECRET_KEY or SECRET_KEY == "paste_your_generated_key_here":
         "Set a real secret key in backend/.env."
     )
 
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1", "yes")
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+
+# --------------------------------------------------
+# Email configuration
+# --------------------------------------------------
+
+# By default, emails are printed in the terminal.
+# Set EMAIL_BACKEND in backend/.env to enable SMTP.
+
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+
+EMAIL_USE_TLS = os.getenv(
+    "EMAIL_USE_TLS",
+    "True",
+).lower() in ("true", "1", "yes")
+
+EMAIL_USE_SSL = os.getenv(
+    "EMAIL_USE_SSL",
+    "False",
+).lower() in ("true", "1", "yes")
+
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "CareerHub <noreply@careerhub.local>",
+)
 
 
 # --------------------------------------------------
@@ -150,6 +188,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (
             "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
             "NumericPasswordValidator"
         ),
     },
@@ -186,7 +230,9 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Job Portal & ATS API",
-    "DESCRIPTION": "API documentation for the Job Portal and Applicant Tracking System.",
+    "DESCRIPTION": (
+        "API documentation for the Job Portal and Applicant Tracking System."
+    ),
     "VERSION": "1.0.0",
 }
 

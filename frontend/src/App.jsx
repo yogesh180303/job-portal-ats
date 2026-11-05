@@ -13,6 +13,7 @@ import Applications from "./Applications";
 import Applicants from "./Applicants";
 import Notifications from "./Notifications";
 import SavedJobs from "./SavedJobs";
+import JobAlerts from "./JobAlerts";
 import CompanyProfile from "./CompanyProfile";
 import Companies from "./Companies";
 import PublicCompanyProfile from "./PublicCompanyProfile";
@@ -77,6 +78,9 @@ function App() {
 
       {/* Phase 12: Saved Jobs */}
       <Route path="/saved-jobs" element={<SavedJobs />} />
+
+      {/* Phase 22: Job Alerts */}
+      <Route path="/job-alerts" element={<JobAlerts />} />
 
       {/* Phase 19: Recruiter Company Profile */}
       <Route
