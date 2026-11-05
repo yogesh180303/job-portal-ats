@@ -185,7 +185,8 @@ function Dashboard() {
 
           const recentApplications = [...recruiterApplicationData].sort(
             (first, second) =>
-              new Date(second.applied_at || 0) - new Date(first.applied_at || 0)
+              new Date(second.applied_at || 0) -
+              new Date(first.applied_at || 0)
           );
 
           setRecruiterJobs(ownJobs);
@@ -484,6 +485,24 @@ function Dashboard() {
                     View Applicants
                   </Link>
                 </article>
+
+                {/* Phase 19: Company Profile Quick Action */}
+                <article className="dashboard-card">
+                  <div className="dashboard-icon" aria-hidden="true">
+                    C
+                  </div>
+                  <h2>Company Profile</h2>
+                  <p>
+                    Manage your company information, logo, website, and
+                    organization details.
+                  </p>
+                  <Link
+                    to="/company-profile"
+                    className="button button-primary"
+                  >
+                    Manage Company Profile
+                  </Link>
+                </article>
               </div>
             </section>
           </>
@@ -665,7 +684,7 @@ function Dashboard() {
               </article>
 
               <article className="dashboard-card">
-                <div className="dashboard-icon">📁</div>
+                <div className="dashboard-icon">📋</div>
                 <h2>My Resumes</h2>
                 <p>
                   Upload, view, download, and manage your professional resumes.

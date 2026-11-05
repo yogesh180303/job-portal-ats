@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import Login from './Login.jsx'
@@ -14,6 +13,7 @@ import Applications from "./Applications";
 import Applicants from "./Applicants";
 import Notifications from "./Notifications";
 import SavedJobs from "./SavedJobs";
+import CompanyProfile from "./CompanyProfile";
 import './App.css'
 
 const sampleJobs = [
@@ -75,6 +75,12 @@ function App() {
       {/* Phase 12: Saved Jobs */}
       <Route path="/saved-jobs" element={<SavedJobs />} />
 
+      {/* Phase 19: Recruiter Company Profile */}
+      <Route
+        path="/company-profile"
+        element={<CompanyProfile />}
+      />
+
       <Route
         path="/"
         element={
@@ -119,7 +125,7 @@ function App() {
                 >
                   <label className="search-field">
                     <span className="search-symbol" aria-hidden="true">
-                      ⌕
+                      âŒ•
                     </span>
                     <input
                       type="search"
@@ -172,7 +178,7 @@ function App() {
                           <span>{job.type}</span>
                         </div>
                         <button className="job-link" type="button">
-                          View details <span aria-hidden="true">→</span>
+                          View details <span aria-hidden="true">â†’</span>
                         </button>
                       </article>
                     ))

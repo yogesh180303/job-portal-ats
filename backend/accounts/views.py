@@ -17,9 +17,10 @@ from .serializers import (
     ApplicationSerializer,
     NotificationSerializer,
     SavedJobSerializer,
+    CompanyProfileSerializer,
 )
 
-from .models import Notification, SavedJob
+from .models import Notification, SavedJob, CompanyProfile
 
 
 @api_view(["GET"])
@@ -1079,4 +1080,41 @@ def saved_job_detail(request, pk):
     return Response(
         {"message": "Saved job removed successfully."},
         status=status.HTTP_200_OK,
+    )
+
+
+# Phase 19: Recruiter Company Profile API
+
+@api_view(["GET", "PUT", "PATCH"])
+@permission_classes([IsAuthenticated])
+def company_profile(request):
+    # Only recruiters can manage a company profile.
+    if request.user.role != "RECRUITER":
+        return Response(
+            {"detail": "Only recruiters can manage a company profile."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    profile, created = CompanyProfile.objects.get_or_create(
+        recruiter=request.user,
+        defaults={"company_name": ""},
+    )
+
+    if request.method == "GET":
+        serializer = CompanyProfileSerializer(profile)
+        return Response(serializer.data)
+
+    serializer = CompanyProfileSerializer(
+        profile,
+        data=request.data,
+        partial=(request.method == "PATCH"),
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
     )

@@ -28,8 +28,8 @@ from accounts.views import (
     notification_detail,
     saved_job_list_create,
     saved_job_detail,
+    company_profile,
 )
-
 
 
 urlpatterns = [
@@ -118,6 +118,7 @@ urlpatterns = [
         resume_detail,
         name="resume-detail",
     ),
+
     path(
         "api/jobs/",
         job_list_create,
@@ -129,28 +130,31 @@ urlpatterns = [
         job_detail,
         name="job-detail",
     ),
+
     path(
-    "api/applications/",
-    application_list_create,
-    name="application-list-create",
-),
-path(
-    "api/applications/<int:pk>/",
-    application_detail,
-    name="application-detail",
-),
+        "api/applications/",
+        application_list_create,
+        name="application-list-create",
+    ),
 
-path(
-    "api/applications/<int:pk>/timeline/",
-    application_timeline,
-    name="application-timeline",
-),
+    path(
+        "api/applications/<int:pk>/",
+        application_detail,
+        name="application-detail",
+    ),
 
-path(
-    "api/applications/<int:pk>/ats-evaluation/",
-    application_ats_evaluation,
-    name="application-ats-evaluation",
-),
+    path(
+        "api/applications/<int:pk>/timeline/",
+        application_timeline,
+        name="application-timeline",
+    ),
+
+    path(
+        "api/applications/<int:pk>/ats-evaluation/",
+        application_ats_evaluation,
+        name="application-ats-evaluation",
+    ),
+
     # Phase 11: Notification APIs
 
     path(
@@ -164,7 +168,8 @@ path(
         notification_detail,
         name="notification-detail",
     ),
-     # Phase 12: Saved Jobs APIs
+
+    # Phase 12: Saved Jobs APIs
 
     path(
         "api/saved-jobs/",
@@ -178,7 +183,15 @@ path(
         name="saved-job-detail",
     ),
 
+    # Phase 19: Recruiter Company Profile API
+
+    path(
+        "api/company-profile/",
+        company_profile,
+        name="company-profile",
+    ),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(

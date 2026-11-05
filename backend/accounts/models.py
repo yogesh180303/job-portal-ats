@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -349,3 +348,38 @@ class SavedJob(models.Model):
 
     def __str__(self):
         return f"{self.candidate.username} saved {self.job.title}"
+
+
+class CompanyProfile(models.Model):
+    class CompanySize(models.TextChoices):
+        SIZE_1_10 = "1-10", "1-10 employees"
+        SIZE_11_50 = "11-50", "11-50 employees"
+        SIZE_51_200 = "51-200", "51-200 employees"
+        SIZE_201_500 = "201-500", "201-500 employees"
+        SIZE_501_1000 = "501-1000", "501-1000 employees"
+        SIZE_1000_PLUS = "1000+", "1000+ employees"
+
+    recruiter = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="company_profile",
+    )
+
+    company_name = models.CharField(max_length=200)
+    logo_url = models.URLField(blank=True)
+    website = models.URLField(blank=True)
+    industry = models.CharField(max_length=150, blank=True)
+    company_size = models.CharField(
+        max_length=20,
+        choices=CompanySize.choices,
+        blank=True,
+    )
+    location = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    linkedin_url = models.URLField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.company_name

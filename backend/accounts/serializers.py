@@ -14,6 +14,7 @@ from .models import (
     ApplicationStatusHistory,
     Notification,
     SavedJob,
+    CompanyProfile,
 )
 
 
@@ -327,4 +328,27 @@ class SavedJobSerializer(serializers.ModelSerializer):
             "id",
             "job_details",
             "saved_at",
+        ]
+
+
+class CompanyProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyProfile
+        fields = [
+            "id",
+            "company_name",
+            "logo_url",
+            "website",
+            "industry",
+            "company_size",
+            "location",
+            "description",
+            "linkedin_url",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
         ]
