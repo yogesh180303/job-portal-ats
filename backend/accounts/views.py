@@ -1,4 +1,3 @@
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,6 +20,8 @@ from .serializers import (
 )
 
 from .models import Notification, SavedJob
+
+
 @api_view(["GET"])
 def health_check(request):
     return Response({
@@ -411,9 +412,10 @@ def resume_list_create(request):
     )
 
 
-@api_view(["DELETE"])
+@api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def resume_detail(request, pk):
+    from django.db import transaction
     from .models import CandidateProfile, Resume
 
     try:
@@ -428,6 +430,38 @@ def resume_detail(request, pk):
         return Response(
             {"detail": "Resume not found."},
             status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.method == "PATCH":
+        is_primary = request.data.get("is_primary")
+
+        if is_primary is not True and str(is_primary).lower() != "true":
+            return Response(
+                {
+                    "is_primary": [
+                        "Set is_primary to true to select this resume as primary."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            Resume.objects.filter(
+                profile=profile,
+                is_primary=True,
+            ).exclude(pk=resume.pk).update(is_primary=False)
+
+            resume.is_primary = True
+            resume.save(update_fields=["is_primary", "updated_at"])
+
+        serializer = ResumeSerializer(
+            resume,
+            context={"request": request},
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
         )
 
     resume.file.delete(save=False)
@@ -654,7 +688,6 @@ def application_list_create(request):
     )
 
 
-
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def application_detail(request, pk):
@@ -760,7 +793,6 @@ def application_detail(request, pk):
     serializer = ApplicationSerializer(application)
 
     return Response(serializer.data)
-
 
 
 # Application Timeline API
@@ -951,8 +983,8 @@ def notification_detail(request, pk):
         "message": "Notification marked as read.",
         "notification": serializer.data,
     })
-    
-    
+
+
 # Phase 12: Saved Jobs APIs
 
 @api_view(["GET", "POST"])
@@ -1048,5 +1080,3 @@ def saved_job_detail(request, pk):
         {"message": "Saved job removed successfully."},
         status=status.HTTP_200_OK,
     )
-
-

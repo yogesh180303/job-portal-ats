@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import "./Resumes.css";
 
@@ -9,6 +8,7 @@ function Resumes() {
   const [isPrimary, setIsPrimary] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [updatingPrimaryId, setUpdatingPrimaryId] = useState(null);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -131,7 +131,7 @@ function Resumes() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(JSON.stringify(data));
+        throw new Error(data.detail || JSON.stringify(data));
       }
 
       setResumes((previousResumes) => [
@@ -152,6 +152,52 @@ function Resumes() {
       setErrorMessage(error.message);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Set an uploaded resume as the primary resume
+  const handleSetPrimary = async (resumeId) => {
+    const token = getToken();
+
+    if (!token) {
+      setErrorMessage("Please log in to update your primary resume.");
+      return;
+    }
+
+    setMessage("");
+    setErrorMessage("");
+    setUpdatingPrimaryId(resumeId);
+
+    try {
+      const response = await fetch(`${API_URL}${resumeId}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          is_primary: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || JSON.stringify(data));
+      }
+
+      setResumes((previousResumes) =>
+        previousResumes.map((resume) => ({
+          ...resume,
+          is_primary: resume.id === resumeId,
+        }))
+      );
+
+      setMessage("Primary resume updated successfully!");
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setUpdatingPrimaryId(null);
     }
   };
 
@@ -315,6 +361,19 @@ function Resumes() {
                     >
                       View / Download
                     </a>
+
+                    {!resume.is_primary && (
+                      <button
+                        type="button"
+                        className="button button-primary"
+                        onClick={() => handleSetPrimary(resume.id)}
+                        disabled={updatingPrimaryId !== null}
+                      >
+                        {updatingPrimaryId === resume.id
+                          ? "Updating..."
+                          : "Set as Primary"}
+                      </button>
+                    )}
 
                     <button
                       type="button"
