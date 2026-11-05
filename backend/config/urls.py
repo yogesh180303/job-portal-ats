@@ -31,6 +31,8 @@ from accounts.views import (
     company_profile,
 )
 
+from accounts.resume_parser_views import parse_resume_api
+
 from accounts.job_alert_views import (
     job_alert_list_create,
     job_alert_detail,
@@ -45,6 +47,8 @@ from accounts.public_company_views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    # Authentication APIs
     path("api/health/", health_check, name="health-check"),
     path("api/auth/register/", candidate_register, name="candidate-register"),
     path("api/auth/login/", EmailTokenObtainPairView.as_view(), name="token-obtain-pair"),
@@ -52,48 +56,59 @@ urlpatterns = [
     path("api/auth/me/", user_profile, name="user-profile"),
     path("api/auth/profile/", candidate_profile, name="candidate-profile"),
 
+    # Education APIs
     path("api/education/", education_list_create, name="education-list-create"),
     path("api/education/<int:pk>/", education_detail, name="education-detail"),
 
+    # Experience APIs
     path("api/experience/", experience_list_create, name="experience-list-create"),
     path("api/experience/<int:pk>/", experience_detail, name="experience-detail"),
+
+    # Skills APIs
     path("api/skills/", skill_list_create, name="skill-list-create"),
     path("api/skills/<int:pk>/", skill_detail, name="skill-detail"),
 
+    # Resume APIs
     path("api/resumes/", resume_list_create, name="resume-list-create"),
     path("api/resumes/<int:pk>/", resume_detail, name="resume-detail"),
+    path("api/resumes/<int:pk>/parse/", parse_resume_api, name="resume-parse"),
 
+    # Job APIs
     path("api/jobs/", job_list_create, name="job-list-create"),
     path("api/jobs/<int:pk>/", job_detail, name="job-detail"),
 
+    # Application APIs
     path("api/applications/", application_list_create, name="application-list-create"),
     path("api/applications/<int:pk>/", application_detail, name="application-detail"),
     path("api/applications/<int:pk>/timeline/", application_timeline, name="application-timeline"),
     path("api/applications/<int:pk>/ats-evaluation/", application_ats_evaluation, name="application-ats-evaluation"),
 
-    # Phase 11: Notification APIs
+    # Notification APIs
     path("api/notifications/", notification_list, name="notification-list"),
     path("api/notifications/<int:pk>/", notification_detail, name="notification-detail"),
 
-    # Phase 12: Saved Jobs APIs
+    # Saved Jobs APIs
     path("api/saved-jobs/", saved_job_list_create, name="saved-job-list-create"),
     path("api/saved-jobs/<int:pk>/", saved_job_detail, name="saved-job-detail"),
 
-    # Phase 19: Recruiter Company Profile API
+    # Recruiter Company Profile API
     path("api/company-profile/", company_profile, name="company-profile"),
 
-    # Phase 20: Public Company APIs
+    # Public Company APIs
     path("api/companies/", public_company_list, name="public-company-list"),
     path("api/companies/<int:pk>/", public_company_detail, name="public-company-detail"),
 
-    # Phase 21: Public Job Details API
+    # Public Job Details API
     path("api/public-jobs/<int:pk>/", public_job_detail, name="public-job-detail"),
 
-    # Phase 22: Job Alerts APIs
+    # Job Alerts APIs
     path("api/job-alerts/", job_alert_list_create, name="job-alert-list-create"),
     path("api/job-alerts/<int:pk>/", job_alert_detail, name="job-alert-detail"),
 ]
 
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
