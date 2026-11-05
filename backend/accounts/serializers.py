@@ -13,6 +13,7 @@ from .models import (
     Application,
     ApplicationStatusHistory,
     Notification,
+    SavedJob,
 )
 
 
@@ -305,4 +306,25 @@ class NotificationSerializer(serializers.ModelSerializer):
             "application",
             "application_id",
             "created_at",
+        ]
+
+
+class SavedJobSerializer(serializers.ModelSerializer):
+    job_details = JobSerializer(
+        source="job",
+        read_only=True,
+    )
+
+    class Meta:
+        model = SavedJob
+        fields = [
+            "id",
+            "job",
+            "job_details",
+            "saved_at",
+        ]
+        read_only_fields = [
+            "id",
+            "job_details",
+            "saved_at",
         ]

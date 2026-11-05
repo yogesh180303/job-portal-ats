@@ -26,6 +26,8 @@ from accounts.views import (
     application_ats_evaluation,
     notification_list,
     notification_detail,
+    saved_job_list_create,
+    saved_job_detail,
 )
 
 
@@ -161,6 +163,19 @@ path(
         "api/notifications/<int:pk>/",
         notification_detail,
         name="notification-detail",
+    ),
+     # Phase 12: Saved Jobs APIs
+
+    path(
+        "api/saved-jobs/",
+        saved_job_list_create,
+        name="saved-job-list-create",
+    ),
+
+    path(
+        "api/saved-jobs/<int:pk>/",
+        saved_job_detail,
+        name="saved-job-detail",
     ),
 
 ]

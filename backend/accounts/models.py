@@ -132,6 +132,7 @@ class Skill(models.Model):
     def __str__(self):
         return f"{self.name} ({self.proficiency})"
 
+
 class Resume(models.Model):
     profile = models.ForeignKey(
         CandidateProfile,
@@ -140,9 +141,7 @@ class Resume(models.Model):
     )
 
     title = models.CharField(max_length=200)
-
     file = models.FileField(upload_to="resumes/")
-
     is_primary = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -150,6 +149,7 @@ class Resume(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class Job(models.Model):
     class JobType(models.TextChoices):
@@ -199,8 +199,8 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.title} at {self.company_name}"
-    
-    
+
+
 class Application(models.Model):
     class Status(models.TextChoices):
         APPLIED = "APPLIED", "Applied"
@@ -242,6 +242,8 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.candidate.username} - {self.job.title}"
+
+
 class ApplicationStatusHistory(models.Model):
     application = models.ForeignKey(
         Application,
@@ -276,8 +278,9 @@ class ApplicationStatusHistory(models.Model):
     def __str__(self):
         return (
             f"Application #{self.application.id}: "
-            f"{self.old_status} → {self.new_status}"
+            f"{self.old_status} -> {self.new_status}"
         )
+
 
 class Notification(models.Model):
     class NotificationType(models.TextChoices):
@@ -299,7 +302,6 @@ class Notification(models.Model):
     )
 
     title = models.CharField(max_length=200)
-
     message = models.TextField()
 
     application = models.ForeignKey(
@@ -319,3 +321,31 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.username} - {self.title}"
+
+
+class SavedJob(models.Model):
+    candidate = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="saved_jobs",
+    )
+
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="saved_by_candidates",
+    )
+
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-saved_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["candidate", "job"],
+                name="unique_candidate_saved_job",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.candidate.username} saved {self.job.title}"

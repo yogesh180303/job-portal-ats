@@ -17,9 +17,10 @@ from .serializers import (
     JobSerializer,
     ApplicationSerializer,
     NotificationSerializer,
+    SavedJobSerializer,
 )
 
-from .models import Notification
+from .models import Notification, SavedJob
 @api_view(["GET"])
 def health_check(request):
     return Response({
@@ -950,4 +951,102 @@ def notification_detail(request, pk):
         "message": "Notification marked as read.",
         "notification": serializer.data,
     })
+    
+    
+# Phase 12: Saved Jobs APIs
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def saved_job_list_create(request):
+    # Only candidates can manage saved jobs.
+    if request.user.role != "CANDIDATE":
+        return Response(
+            {"detail": "Only candidates can manage saved jobs."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if request.method == "GET":
+        saved_jobs = SavedJob.objects.filter(
+            candidate=request.user
+        ).select_related("job", "job__recruiter")
+
+        serializer = SavedJobSerializer(
+            saved_jobs,
+            many=True,
+        )
+
+        return Response(serializer.data)
+
+    # POST: Save a job.
+    job_id = request.data.get("job")
+
+    if not job_id:
+        return Response(
+            {"job": ["Job ID is required."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    from .models import Job
+
+    try:
+        job = Job.objects.get(
+            pk=job_id,
+            status=Job.Status.PUBLISHED,
+        )
+    except (Job.DoesNotExist, ValueError, TypeError):
+        return Response(
+            {"detail": "Published job not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    saved_job, created = SavedJob.objects.get_or_create(
+        candidate=request.user,
+        job=job,
+    )
+
+    if not created:
+        return Response(
+            {"detail": "You have already saved this job."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    serializer = SavedJobSerializer(saved_job)
+
+    return Response(
+        {
+            "message": "Job saved successfully.",
+            "saved_job": serializer.data,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def saved_job_detail(request, pk):
+    # Only candidates can remove saved jobs.
+    if request.user.role != "CANDIDATE":
+        return Response(
+            {"detail": "Only candidates can remove saved jobs."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        saved_job = SavedJob.objects.get(
+            pk=pk,
+            candidate=request.user,
+        )
+    except SavedJob.DoesNotExist:
+        return Response(
+            {"detail": "Saved job not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    saved_job.delete()
+
+    return Response(
+        {"message": "Saved job removed successfully."},
+        status=status.HTTP_200_OK,
+    )
+
 

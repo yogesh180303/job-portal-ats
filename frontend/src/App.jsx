@@ -1,4 +1,5 @@
-﻿import { useState } from 'react'
+
+import { useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import Login from './Login.jsx'
 import Register from './Register.jsx'
@@ -12,6 +13,7 @@ import Jobs from "./Jobs";
 import Applications from "./Applications";
 import Applicants from "./Applicants";
 import Notifications from "./Notifications";
+import SavedJobs from "./SavedJobs";
 import './App.css'
 
 const sampleJobs = [
@@ -44,8 +46,6 @@ const sampleJobs = [
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Keep the existing filteredJobs logic below this line.
-
   const filteredJobs = sampleJobs.filter((job) => {
     const searchText = searchTerm.toLowerCase().trim()
 
@@ -58,145 +58,155 @@ function App() {
   })
 
   return (
-  <Routes>
-    <Route path="/login" element={<Login />} />
-    <Route path="/register" element={<Register />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/profile" element={<CandidateProfile />} />
-    <Route path="/education" element={<Education />} />
-    <Route path="/experience" element={<WorkExperience />} />
-    <Route path="/skills" element={<Skills />} />
-<Route path="/resumes" element={<Resumes />} />
-<Route path="/jobs" element={<Jobs />} />
-<Route path="/applications" element={<Applications />} />
-    <Route path="/notifications" element={<Notifications />} />
-<Route path="/applicants" element={<Applicants />} />
-    <Route
-      path="/"
-      element={
-        <div className="app">
-      <header className="navbar">
-        <a className="brand" href="#" aria-label="CareerHub home">
-          <span className="brand-icon">C</span>
-          <span>CareerHub</span>
-        </a>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/profile" element={<CandidateProfile />} />
+      <Route path="/education" element={<Education />} />
+      <Route path="/experience" element={<WorkExperience />} />
+      <Route path="/skills" element={<Skills />} />
+      <Route path="/resumes" element={<Resumes />} />
+      <Route path="/jobs" element={<Jobs />} />
+      <Route path="/applications" element={<Applications />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/applicants" element={<Applicants />} />
 
-        <nav className="nav-links" aria-label="Main navigation">
-          <a href="#jobs">Find jobs</a>
-          <a href="#about">About</a>
-        </nav>
+      {/* Phase 12: Saved Jobs */}
+      <Route path="/saved-jobs" element={<SavedJobs />} />
 
-        <div className="nav-actions">
-  <Link className="button button-outline" to="/login">
-    Sign in
-  </Link>
-  <Link className="button button-primary" to="/register">
-    Register
-  </Link>
-</div>
-      </header>
+      <Route
+        path="/"
+        element={
+          <div className="app">
+            <header className="navbar">
+              <a className="brand" href="#" aria-label="CareerHub home">
+                <span className="brand-icon">C</span>
+                <span>CareerHub</span>
+              </a>
 
-      <main>
-        <section className="hero">
-          <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
-          <h1>
-            Find work that
-            <br />
-            <span>moves you forward.</span>
-          </h1>
-          <p className="hero-description">
-            Discover opportunities, explore companies, and take
-            the next step in your career.
-          </p>
+              <nav className="nav-links" aria-label="Main navigation">
+                <a href="#jobs">Find jobs</a>
+                <a href="#about">About</a>
+              </nav>
 
-          <form
-            className="search-form"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <label className="search-field">
-              <span className="search-symbol" aria-hidden="true">
-                âŒ•
-              </span>
-              <input
-  type="search"
-  placeholder="Job title, skill, or company"
-  aria-label="Search jobs"
-  value={searchTerm}
-  onChange={(event) => setSearchTerm(event.target.value)}
-/>
-            </label>
-            <button className="button button-primary search-button" type="submit">
-              Search jobs
-            </button>
-          </form>
+              <div className="nav-actions">
+                <Link className="button button-outline" to="/login">
+                  Sign in
+                </Link>
+                <Link className="button button-primary" to="/register">
+                  Register
+                </Link>
+              </div>
+            </header>
 
-          <p className="search-hint">
-            Popular searches: <span>React</span> <span>Python</span>{' '}
-            <span>Data Analyst</span>
-          </p>
-        </section>
+            <main>
+              <section className="hero">
+                <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
+                <h1>
+                  Find work that
+                  <br />
+                  <span>moves you forward.</span>
+                </h1>
+                <p className="hero-description">
+                  Discover opportunities, explore companies, and take
+                  the next step in your career.
+                </p>
 
-        <section className="jobs-section" id="jobs">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">CAREER OPPORTUNITIES</span>
-              <h2>Explore sample jobs</h2>
-              <p>Get a preview of opportunities you can discover here.</p>
-            </div>
-            <span className="job-count">{sampleJobs.length} examples</span>
+                <form
+                  className="search-form"
+                  onSubmit={(event) => event.preventDefault()}
+                >
+                  <label className="search-field">
+                    <span className="search-symbol" aria-hidden="true">
+                      ⌕
+                    </span>
+                    <input
+                      type="search"
+                      placeholder="Job title, skill, or company"
+                      aria-label="Search jobs"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                    />
+                  </label>
+                  <button
+                    className="button button-primary search-button"
+                    type="submit"
+                  >
+                    Search jobs
+                  </button>
+                </form>
+
+                <p className="search-hint">
+                  Popular searches: <span>React</span> <span>Python</span>{' '}
+                  <span>Data Analyst</span>
+                </p>
+              </section>
+
+              <section className="jobs-section" id="jobs">
+                <div className="section-heading">
+                  <div>
+                    <span className="eyebrow">CAREER OPPORTUNITIES</span>
+                    <h2>Explore sample jobs</h2>
+                    <p>
+                      Get a preview of opportunities you can discover here.
+                    </p>
+                  </div>
+                  <span className="job-count">
+                    {sampleJobs.length} examples
+                  </span>
+                </div>
+
+                <div className="job-grid">
+                  {filteredJobs.length > 0 ? (
+                    filteredJobs.map((job) => (
+                      <article className="job-card" key={job.id}>
+                        <div className="company-icon" aria-hidden="true">
+                          {job.company.charAt(0)}
+                        </div>
+                        <span className="job-category">{job.category}</span>
+                        <h3>{job.title}</h3>
+                        <p className="company-name">{job.company}</p>
+                        <div className="job-meta">
+                          <span>{job.location}</span>
+                          <span>{job.type}</span>
+                        </div>
+                        <button className="job-link" type="button">
+                          View details <span aria-hidden="true">→</span>
+                        </button>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="no-jobs">
+                      No jobs found. Try another job title, company, or location.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section className="about-section" id="about">
+                <span className="eyebrow">BUILT FOR YOUR NEXT STEP</span>
+                <h2>Your career journey starts here.</h2>
+                <p>
+                  CareerHub is the foundation for our Job Portal and
+                  Applicant Tracking System. More features will be added
+                  as we build the project.
+                </p>
+              </section>
+            </main>
+
+            <footer className="footer">
+              <a className="brand footer-brand" href="#">
+                <span className="brand-icon">C</span>
+                <span>CareerHub</span>
+              </a>
+              <p>Connecting people with opportunities.</p>
+            </footer>
           </div>
-
-          <div className="job-grid">
-  {filteredJobs.length > 0 ? (
-    filteredJobs.map((job) => (
-      <article className="job-card" key={job.id}>
-                <div className="company-icon" aria-hidden="true">
-                  {job.company.charAt(0)}
-                </div>
-                <span className="job-category">{job.category}</span>
-                <h3>{job.title}</h3>
-                <p className="company-name">{job.company}</p>
-                <div className="job-meta">
-                  <span>{job.location}</span>
-                  <span>{job.type}</span>
-                </div>
-                <button className="job-link" type="button">
-                  View details <span aria-hidden="true">â†’</span>
-                </button>
-                    </article>
-    ))
-  ) : (
-    <p className="no-jobs">
-      No jobs found. Try another job title, company, or location.
-    </p>
-  )}
-</div>
-        </section>
-
-        <section className="about-section" id="about">
-          <span className="eyebrow">BUILT FOR YOUR NEXT STEP</span>
-          <h2>Your career journey starts here.</h2>
-          <p>
-            CareerHub is the foundation for our Job Portal and
-            Applicant Tracking System. More features will be added
-            as we build the project.
-          </p>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <a className="brand footer-brand" href="#">
-          <span className="brand-icon">C</span>
-          <span>CareerHub</span>
-        </a>
-        <p>Connecting people with opportunities.</p>
-              </footer>
-      </div>
-      }
-    />
-  </Routes>
+        }
+      />
+    </Routes>
   )
 }
 
 export default App
-

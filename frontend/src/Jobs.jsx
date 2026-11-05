@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import "./Jobs.css";
 
@@ -27,8 +26,13 @@ function Jobs() {
 
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
   const [applyingJobId, setApplyingJobId] = useState(null);
-const [appliedJobIds, setAppliedJobIds] = useState([]);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
+
+  // Phase 12: Saved Jobs state
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [savingJobId, setSavingJobId] = useState(null);
 
   const token = sessionStorage.getItem("accessToken");
 
@@ -74,7 +78,31 @@ const [appliedJobIds, setAppliedJobIds] = useState([]);
         }
 
         setUser(profileData);
+
         await fetchJobs();
+
+        // Load saved jobs for candidates.
+        if (profileData.role === "CANDIDATE") {
+          const savedJobsResponse = await fetch(
+            `${API_URL}/saved-jobs/`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const savedJobsData = await savedJobsResponse.json();
+
+          if (!savedJobsResponse.ok) {
+            throw new Error(
+              "Unable to load your saved jobs."
+            );
+          }
+
+          setSavedJobs(savedJobsData);
+        }
       } catch (error) {
         setErrorMessage(error.message);
       } finally {
@@ -227,37 +255,110 @@ const [appliedJobIds, setAppliedJobIds] = useState([]);
     }
   };
 
+  // Apply for a job.
   const handleApply = async (jobId) => {
-  setMessage("");
-  setErrorMessage("");
-  setApplyingJobId(jobId);
+    setMessage("");
+    setErrorMessage("");
+    setApplyingJobId(jobId);
 
-  try {
-    const response = await fetch(`${API_URL}/applications/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ job: jobId }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/applications/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ job: jobId }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        data.detail || "Unable to apply for this job."
-      );
+      if (!response.ok) {
+        throw new Error(
+          data.detail || "Unable to apply for this job."
+        );
+      }
+
+      setAppliedJobIds((previous) => [...previous, jobId]);
+      setMessage("Your application was submitted successfully.");
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setApplyingJobId(null);
     }
+  };
 
-    setAppliedJobIds((previous) => [...previous, jobId]);
-    setMessage("Your application was submitted successfully.");
-  } catch (error) {
-    setErrorMessage(error.message);
-  } finally {
-    setApplyingJobId(null);
-  }
-};
+  // Phase 12: Save or remove a saved job.
+  const handleSaveJob = async (jobId) => {
+    setMessage("");
+    setErrorMessage("");
+    setSavingJobId(jobId);
+
+    const existingSavedJob = savedJobs.find(
+      (savedJob) => savedJob.job === jobId
+    );
+
+    try {
+      if (existingSavedJob) {
+        // Remove the saved job.
+        const response = await fetch(
+          `${API_URL}/saved-jobs/${existingSavedJob.id}/`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || "Unable to remove saved job."
+          );
+        }
+
+        setSavedJobs((previous) =>
+          previous.filter(
+            (savedJob) => savedJob.id !== existingSavedJob.id
+          )
+        );
+
+        setMessage("Job removed from your saved jobs.");
+      } else {
+        // Save the job.
+        const response = await fetch(`${API_URL}/saved-jobs/`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ job: jobId }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || "Unable to save this job."
+          );
+        }
+
+        setSavedJobs((previous) => [
+          ...previous,
+          data.saved_job,
+        ]);
+
+        setMessage("Job saved successfully.");
+      }
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setSavingJobId(null);
+    }
+  };
 
   const handleStatusChange = async (job, newStatus) => {
     setMessage("");
@@ -603,25 +704,42 @@ const [appliedJobIds, setAppliedJobIds] = useState([]);
                     Posted by: {job.recruiter_name}
                   </span>
 
-                  {user.role === "CANDIDATE" && job.status === "PUBLISHED" && (
-  <div className="job-actions">
-    <button
-      className="button button-primary"
-      type="button"
-      onClick={() => handleApply(job.id)}
-      disabled={
-        applyingJobId === job.id ||
-        appliedJobIds.includes(job.id)
-      }
-    >
-      {applyingJobId === job.id
-        ? "Applying..."
-        : appliedJobIds.includes(job.id)
-          ? "Applied"
-          : "Apply Now"}
-    </button>
-  </div>
-)}
+                  {user?.role === "CANDIDATE" &&
+                    job.status === "PUBLISHED" && (
+                      <div className="job-actions">
+                        <button
+                          className="button button-primary"
+                          type="button"
+                          onClick={() => handleApply(job.id)}
+                          disabled={
+                            applyingJobId === job.id ||
+                            appliedJobIds.includes(job.id)
+                          }
+                        >
+                          {applyingJobId === job.id
+                            ? "Applying..."
+                            : appliedJobIds.includes(job.id)
+                              ? "Applied"
+                              : "Apply Now"}
+                        </button>
+
+                        <button
+                          className="button button-outline"
+                          type="button"
+                          onClick={() => handleSaveJob(job.id)}
+                          disabled={savingJobId === job.id}
+                        >
+                          {savingJobId === job.id
+                            ? "Please wait..."
+                            : savedJobs.some(
+                                (savedJob) =>
+                                  savedJob.job === job.id
+                              )
+                              ? "Remove Saved"
+                              : "Save Job"}
+                        </button>
+                      </div>
+                    )}
 
                   {canManageJob(job) && (
                     <div className="job-actions">

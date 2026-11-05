@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
@@ -36,21 +37,22 @@ function Dashboard() {
 
         const data = await response.json();
         setUser(data);
-        if (data.role === "CANDIDATE") {
-  const notificationResponse = await fetch(
-    "http://127.0.0.1:8000/api/notifications/",
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
 
-  if (notificationResponse.ok) {
-    const notificationData = await notificationResponse.json();
-    setUnreadNotifications(notificationData.unread_count || 0);
-  }
-}
+        if (data.role === "CANDIDATE") {
+          const notificationResponse = await fetch(
+            "http://127.0.0.1:8000/api/notifications/",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (notificationResponse.ok) {
+            const notificationData = await notificationResponse.json();
+            setUnreadNotifications(notificationData.unread_count || 0);
+          }
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -114,9 +116,7 @@ function Dashboard() {
         <section className="dashboard-welcome">
           <span className="eyebrow">CANDIDATE DASHBOARD</span>
 
-          <h1>
-            Welcome back, {user.username}!
-          </h1>
+          <h1>Welcome back, {user.username}!</h1>
 
           <p>
             Manage your job search and keep track of your career journey.
@@ -125,28 +125,29 @@ function Dashboard() {
 
         <section className="dashboard-grid">
           {user.role === "CANDIDATE" && (
-  <article className="dashboard-card">
-    <div className="dashboard-icon">🔔</div>
-    <h2>Notifications</h2>
-    <p>
-      You have {unreadNotifications} unread notification(s)
-      about your job applications.
-    </p>
-    <Link to="/notifications" className="button button-primary">
-      View Notifications
-    </Link>
-  </article>
-)}
+            <article className="dashboard-card">
+              <div className="dashboard-icon">🔔</div>
+              <h2>Notifications</h2>
+              <p>
+                You have {unreadNotifications} unread notification(s)
+                about your job applications.
+              </p>
+              <Link to="/notifications" className="button button-primary">
+                View Notifications
+              </Link>
+            </article>
+          )}
+
           <article className="dashboard-card">
-  <div className="dashboard-icon">📄</div>
-  <h2>My Applications</h2>
-  <p>
-    Track the jobs you have applied for and monitor their status.
-  </p>
-  <Link to="/applications" className="button button-primary">
-    View Applications
-  </Link>
-</article>
+            <div className="dashboard-icon">📄</div>
+            <h2>My Applications</h2>
+            <p>
+              Track the jobs you have applied for and monitor their status.
+            </p>
+            <Link to="/applications" className="button button-primary">
+              View Applications
+            </Link>
+          </article>
 
           <article className="dashboard-card">
             <div className="dashboard-icon">⭐</div>
@@ -154,6 +155,11 @@ function Dashboard() {
             <p>
               Keep interesting job opportunities in one place.
             </p>
+            {user.role === "CANDIDATE" && (
+              <Link to="/saved-jobs" className="button button-primary">
+                View Saved Jobs
+              </Link>
+            )}
           </article>
 
           <article className="dashboard-card">
@@ -162,58 +168,51 @@ function Dashboard() {
             <p>
               View your account details and prepare your professional profile.
             </p>
-          </article>
-        </section>
-
-                {["RECRUITER", "ADMIN"].includes(user.role) && (
-          <article className="dashboard-card">
-            <div className="dashboard-icon">👥</div>
-            <h2>Manage Applicants</h2>
-            <p>
-              Review candidates who applied for your jobs and update their application status.
-            </p>
-            <Link to="/applicants" className="button button-primary">
-              View Applicants
+            <Link to="/profile" className="button button-primary">
+              View Profile
             </Link>
           </article>
-        )}
 
-        <article className="dashboard-card">
-  <div className="dashboard-icon">💻</div>
-  <h2>My Skills</h2>
-  <p>
-    Add, update, and manage your technical and professional skills.
-  </p>
-  <Link to="/skills" className="button button-primary">
-    Manage Skills
-  </Link>
-</article>
+          <article className="dashboard-card">
+            <div className="dashboard-icon">📄</div>
+            <h2>My Resumes</h2>
+            <p>
+              Upload, view, download, and manage your professional resumes.
+            </p>
+            <Link to="/resumes" className="button button-primary">
+              Manage Resumes
+            </Link>
+          </article>
 
-<article className="dashboard-card">
-  <div className="dashboard-icon">📄</div>
-  <h2>My Resumes</h2>
-  <p>
-    Upload, view, download, and manage your professional resumes.
-  </p>
-  <Link to="/resumes" className="button button-primary">
-    Manage Resumes
-  </Link>
-</article>
+          <section className="dashboard-card dashboard-profile">
+            <h2>Account Information</h2>
 
-        <section className="dashboard-card dashboard-profile">
-          <h2>Account Information</h2>
+            <p>
+              <strong>Username:</strong> {user.username}
+            </p>
 
-          <p>
-            <strong>Username:</strong> {user.username}
-          </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
 
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
+            <p>
+              <strong>Role:</strong> {user.role}
+            </p>
+          </section>
 
-          <p>
-            <strong>Role:</strong> {user.role}
-          </p>
+          {["RECRUITER", "ADMIN"].includes(user.role) && (
+            <article className="dashboard-card">
+              <div className="dashboard-icon">👥</div>
+              <h2>Manage Applicants</h2>
+              <p>
+                Review candidates who applied for your jobs and update their
+                application status.
+              </p>
+              <Link to="/applicants" className="button button-primary">
+                View Applicants
+              </Link>
+            </article>
+          )}
         </section>
 
         <div className="dashboard-actions">
