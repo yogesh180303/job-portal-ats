@@ -1,4 +1,4 @@
-.interviews-page {
+﻿.interviews-page {
   min-height: 100vh;
   background:
     radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.12), transparent 45%),
@@ -140,5 +140,109 @@
   .interviews-content {
     width: min(100% - 32px, 900px);
     padding-top: 35px;
+  }
+}
+
+.interview-form-section,
+.interviews-list-section {
+  margin-top: 32px;
+}
+
+.interview-form-section h2,
+.interviews-list-section > h2 {
+  color: var(--heading);
+  margin-bottom: 10px;
+}
+
+.interview-form-section > p {
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+
+.interview-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 24px;
+  background: var(--card, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.interview-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.interview-form input,
+.interview-form select,
+.interview-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  color: var(--heading);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.interview-form select option {
+  background: var(--bg);
+  color: var(--heading);
+}
+
+.interview-form input:focus,
+.interview-form select:focus,
+.interview-form textarea:focus {
+  outline: none;
+  border-color: #818cf8;
+}
+
+.interview-notes-field {
+  grid-column: 1 / -1;
+}
+
+.interview-submit-button {
+  grid-column: 1 / -1;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #6366f1;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.interview-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.interviews-success {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #16a34a;
+  border-radius: 8px;
+  color: #4ade80;
+  background: rgba(22, 163, 74, 0.1);
+}
+
+@media (max-width: 600px) {
+
+@media (max-width: 600px) {
+  .interview-form {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .interview-notes-field,
+  .interview-submit-button {
+    grid-column: auto;
   }
 }
