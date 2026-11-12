@@ -295,6 +295,10 @@ class Notification(models.Model):
             "JOB_ALERT",
             "New Job Alert",
         )
+        INTERVIEW_UPDATE = (
+            "INTERVIEW_UPDATE",
+            "Interview Update",
+        )
 
     recipient = models.ForeignKey(
         User,
@@ -461,3 +465,63 @@ class JobAlertMatch(models.Model):
 
     def __str__(self):
         return f"Alert #{self.alert_id} matched Job #{self.job_id}"
+
+
+class Interview(models.Model):
+    class InterviewType(models.TextChoices):
+        ONLINE = "ONLINE", "Online"
+        IN_PERSON = "IN_PERSON", "In Person"
+
+    class Status(models.TextChoices):
+        SCHEDULED = "SCHEDULED", "Scheduled"
+        COMPLETED = "COMPLETED", "Completed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="interviews",
+    )
+
+    scheduled_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="scheduled_interviews",
+    )
+
+    title = models.CharField(max_length=200, default="Job Interview")
+
+    interview_type = models.CharField(
+        max_length=20,
+        choices=InterviewType.choices,
+        default=InterviewType.ONLINE,
+    )
+
+    scheduled_at = models.DateTimeField()
+
+    duration_minutes = models.PositiveIntegerField(default=30)
+
+    meeting_link = models.URLField(blank=True)
+
+    location = models.CharField(max_length=300, blank=True)
+
+    notes = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.SCHEDULED,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["scheduled_at"]
+
+    def __str__(self):
+        return (
+            f"{self.title} - "
+            f"{self.application.candidate.username}"
+        )

@@ -37,7 +37,10 @@ from accounts.job_alert_views import (
     job_alert_list_create,
     job_alert_detail,
 )
-
+from accounts.interview_views import (
+    interview_list_create,
+    interview_detail,
+)
 from accounts.public_company_views import (
     public_company_list,
     public_company_detail,
@@ -104,6 +107,10 @@ urlpatterns = [
     # Job Alerts APIs
     path("api/job-alerts/", job_alert_list_create, name="job-alert-list-create"),
     path("api/job-alerts/<int:pk>/", job_alert_detail, name="job-alert-detail"),
+
+        # Interview APIs
+    path("api/interviews/", interview_list_create, name="interview-list-create"),
+    path("api/interviews/<int:pk>/", interview_detail, name="interview-detail"),
 ]
 
 

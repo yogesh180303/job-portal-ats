@@ -1,0 +1,144 @@
+.interviews-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.12), transparent 45%),
+    var(--bg);
+}
+
+.interviews-content {
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 55px 0 80px;
+}
+
+.interviews-heading {
+  margin-bottom: 30px;
+}
+
+.interviews-heading h1 {
+  margin: 12px 0;
+  color: var(--heading);
+  font-size: clamp(30px, 5vw, 42px);
+  letter-spacing: -1.5px;
+}
+
+.interviews-heading p,
+.interviews-message {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.interviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.interview-card,
+.interviews-empty {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 27, 46, 0.85);
+}
+
+.interview-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.interview-card h2 {
+  margin: 8px 0;
+  color: var(--heading);
+  font-size: 20px;
+}
+
+.interview-job {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.interview-details {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.interview-details p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.interview-details strong {
+  color: var(--heading);
+}
+
+.interview-details a {
+  color: #60a5fa;
+}
+
+.interview-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.interview-status.completed {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
+.interview-status.cancelled {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.interviews-empty {
+  padding: 55px 25px;
+  text-align: center;
+}
+
+.interviews-empty-icon {
+  font-size: 38px;
+}
+
+.interviews-empty h2 {
+  margin: 15px 0 8px;
+  color: var(--heading);
+}
+
+.interviews-empty p {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.interviews-error {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 10px;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+}
+
+@media (max-width: 600px) {
+  .interview-card-top {
+    flex-direction: column;
+  }
+
+  .interviews-content {
+    width: min(100% - 32px, 900px);
+    padding-top: 35px;
+  }
+}
