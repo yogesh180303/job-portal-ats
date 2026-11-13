@@ -246,3 +246,46 @@
     grid-column: auto;
   }
 }
+}
+.interview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.interview-actions button,
+.interview-cancel-edit {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--heading);
+  cursor: pointer;
+  font: inherit;
+}
+
+.interview-actions button:disabled,
+.interview-cancel-edit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.interview-actions .cancel-interview-button {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.interview-edit-form {
+  margin-top: 20px;
+}
+
+.interview-edit-form h3 {
+  grid-column: 1 / -1;
+  color: var(--heading);
+  margin: 0;
+}
+
+.interview-cancel-edit {
+  grid-column: 1 / -1;
+}
