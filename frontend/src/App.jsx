@@ -20,6 +20,7 @@ import Companies from "./Companies";
 import PublicCompanyProfile from "./PublicCompanyProfile";
 import PublicJobDetails from "./PublicJobDetails";
 import Calendar from "./Calendar";
+import InterviewFeedback from "./InterviewFeedback";
 import './App.css'
 
 const sampleJobs = [
@@ -78,6 +79,10 @@ function App() {
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/interviews" element={<Interviews />} />
       <Route path="/calendar" element={<Calendar />} />
+      <Route
+  path="/interview-feedback"
+  element={<InterviewFeedback />}
+/>
       <Route path="/applicants" element={<Applicants />} />
 
       {/* Phase 12: Saved Jobs */}
