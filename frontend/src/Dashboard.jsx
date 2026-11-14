@@ -347,6 +347,38 @@ function Dashboard() {
     .sort((a, b) => b.applications - a.applications)
     .slice(0, 6);
 
+  // Candidate application status chart data
+  const candidateStatusChartData = [
+    {
+      name: "Applied / Under Review",
+      value: applicationStats.underReview,
+    },
+    {
+      name: "Shortlisted",
+      value: applicationStats.shortlisted,
+    },
+    {
+      name: "Interview",
+      value: applicationStats.interview,
+    },
+    {
+      name: "Selected",
+      value: applicationStats.selected,
+    },
+    {
+      name: "Rejected",
+      value: applicationStats.rejected,
+    },
+  ].filter((item) => item.value > 0);
+
+  // Candidate selection progress
+  const candidateSelectionRate =
+    applicationStats.total > 0
+      ? Math.round(
+          (applicationStats.selected / applicationStats.total) * 100
+        )
+      : 0;
+
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -847,6 +879,127 @@ function Dashboard() {
                 <article className="dashboard-stat-card">
                   <span>Rejected</span>
                   <strong>{applicationStats.rejected}</strong>
+                </article>
+              </div>
+            </section>
+
+            {/* CANDIDATE APPLICATION INSIGHTS */}
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">APPLICATION ANALYTICS</span>
+                  <h2>Application Insights</h2>
+                </div>
+              </div>
+
+              <div className="dashboard-analytics-grid">
+                {/* Application status distribution */}
+                <article className="dashboard-analytics-card">
+                  <div className="dashboard-section-heading">
+                    <div>
+                      <h3>Application Status Distribution</h3>
+                      <p>Track the progress of your applications</p>
+                    </div>
+                  </div>
+
+                  {applicationStats.total === 0 ? (
+                    <div className="dashboard-empty-state">
+                      <p>
+                        Your application insights will appear after you apply
+                        for a job.
+                      </p>
+
+                      <Link to="/" className="button button-primary">
+                        Explore Jobs
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="dashboard-chart">
+                      <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                          <Pie
+                            data={candidateStatusChartData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={88}
+                            innerRadius={48}
+                            paddingAngle={3}
+                          >
+                            {candidateStatusChartData.map((entry, index) => (
+                              <Cell
+                                key={entry.name}
+                                fill={
+                                  statusChartColors[
+                                    index % statusChartColors.length
+                                  ]
+                                }
+                              />
+                            ))}
+                          </Pie>
+
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </article>
+
+                {/* Candidate progress summary */}
+                <article className="dashboard-analytics-card dashboard-conversion-card">
+                  <span className="eyebrow">YOUR PROGRESS</span>
+                  <h3>Application Summary</h3>
+
+                  <strong className="dashboard-conversion-value">
+                    {applicationStats.underReview}
+                  </strong>
+
+                  <p>Applications awaiting a decision</p>
+
+                  <div className="dashboard-stats-grid">
+                    <article className="dashboard-stat-card">
+                      <span>Shortlisted</span>
+                      <strong>{applicationStats.shortlisted}</strong>
+                    </article>
+
+                    <article className="dashboard-stat-card">
+                      <span>Interviews</span>
+                      <strong>{applicationStats.interview}</strong>
+                    </article>
+                  </div>
+
+                  <div className="dashboard-section-heading">
+                    <h3>Selection Progress</h3>
+                    <strong>{candidateSelectionRate}%</strong>
+                  </div>
+
+                  <div
+                    className="dashboard-progress-track"
+                    role="progressbar"
+                    aria-valuenow={candidateSelectionRate}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Application selection progress"
+                  >
+                    <div
+                      className="dashboard-progress-fill"
+                      style={{ width: `${candidateSelectionRate}%` }}
+                    />
+                  </div>
+
+                  <p>
+                    {applicationStats.selected} selected out of{" "}
+                    {applicationStats.total} total applications.
+                  </p>
+
+                  {applicationStats.total === 0 && (
+                    <p className="dashboard-analytics-note">
+                      Apply for jobs to start tracking your application
+                      progress.
+                    </p>
+                  )}
                 </article>
               </div>
             </section>
