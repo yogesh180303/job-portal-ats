@@ -32,6 +32,7 @@ class InterviewFeedbackSerializer(serializers.ModelSerializer):
             "weaknesses",
             "comments",
             "recommendation",
+            "is_shared_with_candidate",
             "created_at",
             "updated_at",
         ]

@@ -15,11 +15,13 @@ const emptyForm = {
   weaknesses: "",
   comments: "",
   recommendation: "NEXT_ROUND",
+  is_shared_with_candidate: false,
 };
 
 function InterviewFeedback() {
   const token = sessionStorage.getItem("accessToken");
 
+  const [user, setUser] = useState(null);
   const [feedbackList, setFeedbackList] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -34,6 +36,11 @@ function InterviewFeedback() {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
+
+  const canManageFeedback =
+    user && ["RECRUITER", "ADMIN"].includes(user.role);
+
+  const isCandidate = user?.role === "CANDIDATE";
 
   const loadData = async () => {
     setLoading(true);
@@ -70,13 +77,33 @@ function InterviewFeedback() {
   };
 
   useEffect(() => {
-    if (!token) {
-      setError("Please log in again to view interview feedback.");
-      setLoading(false);
-      return;
-    }
+    const initializePage = async () => {
+      if (!token) {
+        setError("Please log in again to view interview feedback.");
+        setLoading(false);
+        return;
+      }
 
-    loadData();
+      try {
+        const userResponse = await fetch(`${API_URL}/auth/me/`, {
+          headers,
+        });
+
+        const userData = await userResponse.json();
+
+        if (!userResponse.ok) {
+          throw new Error("Unable to load account information.");
+        }
+
+        setUser(userData);
+        await loadData();
+      } catch (err) {
+        setError(err.message || "Unable to load your account.");
+        setLoading(false);
+      }
+    };
+
+    initializePage();
   }, []);
 
   const feedbackInterviewIds = useMemo(
@@ -92,6 +119,7 @@ function InterviewFeedback() {
 
   const updateField = (event) => {
     const { name, value } = event.target;
+
     setForm((current) => ({
       ...current,
       [name]: [
@@ -106,20 +134,27 @@ function InterviewFeedback() {
   };
 
   const openCreateForm = () => {
+    if (!canManageFeedback) return;
+
     setEditingId(null);
+
     setForm({
       ...emptyForm,
       interview: completedInterviews[0]
         ? String(completedInterviews[0].id)
         : "",
     });
+
     setError("");
     setSuccess("");
     setShowForm(true);
   };
 
   const openEditForm = (feedback) => {
+    if (!canManageFeedback) return;
+
     setEditingId(feedback.id);
+
     setForm({
       interview: String(feedback.interview),
       technical_skills: feedback.technical_skills,
@@ -130,7 +165,9 @@ function InterviewFeedback() {
       weaknesses: feedback.weaknesses || "",
       comments: feedback.comments || "",
       recommendation: feedback.recommendation || "NEXT_ROUND",
+      is_shared_with_candidate: feedback.is_shared_with_candidate || false,
     });
+
     setError("");
     setSuccess("");
     setShowForm(true);
@@ -145,6 +182,9 @@ function InterviewFeedback() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!canManageFeedback) return;
+
     setSaving(true);
     setError("");
     setSuccess("");
@@ -158,6 +198,7 @@ function InterviewFeedback() {
       weaknesses: form.weaknesses,
       comments: form.comments,
       recommendation: form.recommendation,
+      is_shared_with_candidate: form.is_shared_with_candidate,
     };
 
     if (!editingId) {
@@ -190,10 +231,16 @@ function InterviewFeedback() {
         throw new Error(message);
       }
 
-      setSuccess(editingId ? "Feedback updated successfully." : "Feedback submitted successfully.");
+      setSuccess(
+        editingId
+          ? "Feedback updated successfully."
+          : "Feedback submitted successfully."
+      );
+
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
+
       await loadData();
     } catch (err) {
       setError(err.message || "Unable to save feedback.");
@@ -217,50 +264,83 @@ function InterviewFeedback() {
     <main className="feedback-page">
       <header className="feedback-header">
         <div>
-          <span className="feedback-eyebrow">RECRUITER WORKSPACE</span>
+          <span className="feedback-eyebrow">
+            {isCandidate
+              ? "CANDIDATE FEEDBACK"
+              : user?.role === "ADMIN"
+                ? "ADMIN WORKSPACE"
+                : "RECRUITER WORKSPACE"}
+          </span>
+
           <h1>Interview Feedback</h1>
-          <p>Review candidate performance and manage interview evaluations.</p>
+
+          <p>
+            {isCandidate
+              ? "Review feedback shared with you by your interviewer."
+              : "Review candidate performance and manage interview evaluations."}
+          </p>
         </div>
 
         <div className="feedback-header-actions">
           <Link to="/dashboard" className="feedback-back-link">
             Dashboard
           </Link>
-          <button
-            type="button"
-            className="feedback-primary-button"
-            onClick={openCreateForm}
-            disabled={completedInterviews.length === 0}
-          >
-            + Add feedback
-          </button>
+
+          {canManageFeedback && (
+            <button
+              type="button"
+              className="feedback-primary-button"
+              onClick={openCreateForm}
+              disabled={completedInterviews.length === 0}
+            >
+              + Add feedback
+            </button>
+          )}
         </div>
       </header>
 
-      {error && <div className="feedback-alert feedback-error">{error}</div>}
-      {success && <div className="feedback-alert feedback-success">{success}</div>}
+      {error && (
+        <div className="feedback-alert feedback-error">{error}</div>
+      )}
+
+      {success && (
+        <div className="feedback-alert feedback-success">{success}</div>
+      )}
 
       <section className="feedback-summary">
         <article className="feedback-stat">
-          <span>Total feedback</span>
+          <span>
+            {isCandidate ? "Feedback shared with you" : "Total feedback"}
+          </span>
           <strong>{feedbackList.length}</strong>
         </article>
-        <article className="feedback-stat">
-          <span>Completed interviews without feedback</span>
-          <strong>{completedInterviews.length}</strong>
-        </article>
+
+        {canManageFeedback && (
+          <article className="feedback-stat">
+            <span>Completed interviews without feedback</span>
+            <strong>{completedInterviews.length}</strong>
+          </article>
+        )}
       </section>
 
-      {showForm && (
+      {canManageFeedback && showForm && (
         <section className="feedback-form-card">
           <div className="feedback-form-heading">
             <div>
               <span className="feedback-eyebrow">
                 {editingId ? "UPDATE EVALUATION" : "NEW EVALUATION"}
               </span>
-              <h2>{editingId ? "Edit feedback" : "Submit interview feedback"}</h2>
+
+              <h2>
+                {editingId ? "Edit feedback" : "Submit interview feedback"}
+              </h2>
             </div>
-            <button type="button" className="feedback-close" onClick={closeForm}>
+
+            <button
+              type="button"
+              className="feedback-close"
+              onClick={closeForm}
+            >
               Close
             </button>
           </div>
@@ -269,6 +349,7 @@ function InterviewFeedback() {
             {!editingId && (
               <label className="feedback-field">
                 Completed interview
+
                 <select
                   name="interview"
                   value={form.interview}
@@ -276,9 +357,12 @@ function InterviewFeedback() {
                   required
                 >
                   <option value="">Select an interview</option>
+
                   {completedInterviews.map((interview) => (
                     <option key={interview.id} value={interview.id}>
-                      Interview #{interview.id} — {interview.candidate_name || "Candidate"} — {interview.job_title || "Job"}
+                      Interview #{interview.id} —{" "}
+                      {interview.candidate_name || "Candidate"} —{" "}
+                      {interview.job_title || "Job"}
                     </option>
                   ))}
                 </select>
@@ -294,6 +378,7 @@ function InterviewFeedback() {
               ].map(([name, label]) => (
                 <label className="feedback-field" key={name}>
                   {label} (1–5)
+
                   <select
                     name={name}
                     value={form[name]}
@@ -312,6 +397,7 @@ function InterviewFeedback() {
 
             <label className="feedback-field">
               Strengths
+
               <textarea
                 name="strengths"
                 value={form.strengths}
@@ -323,6 +409,7 @@ function InterviewFeedback() {
 
             <label className="feedback-field">
               Areas to improve
+
               <textarea
                 name="weaknesses"
                 value={form.weaknesses}
@@ -334,6 +421,7 @@ function InterviewFeedback() {
 
             <label className="feedback-field">
               Comments
+
               <textarea
                 name="comments"
                 value={form.comments}
@@ -345,6 +433,7 @@ function InterviewFeedback() {
 
             <label className="feedback-field">
               Recommendation
+
               <select
                 name="recommendation"
                 value={form.recommendation}
@@ -357,6 +446,28 @@ function InterviewFeedback() {
               </select>
             </label>
 
+            <label className="feedback-share-option">
+              <input
+                type="checkbox"
+                name="is_shared_with_candidate"
+                checked={form.is_shared_with_candidate}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    is_shared_with_candidate: event.target.checked,
+                  }))
+                }
+              />
+
+              <span>
+                <strong>Share feedback with candidate</strong>
+                <small>
+                  Allow this candidate to view their interview feedback.
+                  Leave unchecked to keep it private.
+                </small>
+              </span>
+            </label>
+
             <div className="feedback-form-actions">
               <button
                 type="button"
@@ -365,12 +476,17 @@ function InterviewFeedback() {
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 className="feedback-primary-button"
                 disabled={saving || (!editingId && !form.interview)}
               >
-                {saving ? "Saving..." : editingId ? "Update feedback" : "Submit feedback"}
+                {saving
+                  ? "Saving..."
+                  : editingId
+                    ? "Update feedback"
+                    : "Submit feedback"}
               </button>
             </div>
           </form>
@@ -381,8 +497,11 @@ function InterviewFeedback() {
         <div className="feedback-list-heading">
           <div>
             <span className="feedback-eyebrow">EVALUATIONS</span>
-            <h2>Submitted feedback</h2>
+            <h2>
+              {isCandidate ? "Feedback shared with you" : "Submitted feedback"}
+            </h2>
           </div>
+
           <button
             type="button"
             className="feedback-refresh-button"
@@ -397,7 +516,9 @@ function InterviewFeedback() {
           <p className="feedback-empty">Loading feedback...</p>
         ) : feedbackList.length === 0 ? (
           <div className="feedback-empty">
-            No interview feedback has been submitted yet.
+            {isCandidate
+              ? "No interview feedback has been shared with you yet."
+              : "No interview feedback has been submitted yet."}
           </div>
         ) : (
           <div className="feedback-card-list">
@@ -408,16 +529,31 @@ function InterviewFeedback() {
                     <h3>{feedback.candidate_name || "Candidate"}</h3>
                     <p>{feedback.job_title || "Job title unavailable"}</p>
                   </div>
+
                   <span className="feedback-recommendation">
                     {getRecommendationLabel(feedback.recommendation)}
                   </span>
                 </div>
 
                 <div className="feedback-ratings">
-                  <span>Technical: <strong>{feedback.technical_skills}/5</strong></span>
-                  <span>Communication: <strong>{feedback.communication}/5</strong></span>
-                  <span>Problem solving: <strong>{feedback.problem_solving}/5</strong></span>
-                  <span>Overall: <strong>{feedback.overall_rating}/5</strong></span>
+                  <span>
+                    Technical:{" "}
+                    <strong>{feedback.technical_skills}/5</strong>
+                  </span>
+
+                  <span>
+                    Communication:{" "}
+                    <strong>{feedback.communication}/5</strong>
+                  </span>
+
+                  <span>
+                    Problem solving:{" "}
+                    <strong>{feedback.problem_solving}/5</strong>
+                  </span>
+
+                  <span>
+                    Overall: <strong>{feedback.overall_rating}/5</strong>
+                  </span>
                 </div>
 
                 {feedback.strengths && (
@@ -425,32 +561,36 @@ function InterviewFeedback() {
                     <strong>Strengths:</strong> {feedback.strengths}
                   </p>
                 )}
+
                 {feedback.weaknesses && (
                   <p className="feedback-detail">
                     <strong>Areas to improve:</strong> {feedback.weaknesses}
                   </p>
                 )}
+
                 {feedback.comments && (
                   <p className="feedback-detail">
                     <strong>Comments:</strong> {feedback.comments}
                   </p>
                 )}
 
-                <div className="feedback-card-footer">
-                  <span>
-                    Submitted by: {feedback.submitted_by_name || "Recruiter"}
-                  </span>
-                  <button
-  type="button"
-  className="feedback-edit-button"
-  onClick={() => {
-    alert("Edit button clicked");
-    openEditForm(feedback);
-  }}
->
-  Edit feedback
-</button>
-                </div>
+                {canManageFeedback && (
+                  <div className="feedback-card-actions">
+                    <span className="feedback-sharing-status">
+                      {feedback.is_shared_with_candidate
+                        ? "Shared with candidate"
+                        : "Private feedback"}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="feedback-secondary-button"
+                      onClick={() => openEditForm(feedback)}
+                    >
+                      Edit feedback
+                    </button>
+                  </div>
+                )}
               </article>
             ))}
           </div>

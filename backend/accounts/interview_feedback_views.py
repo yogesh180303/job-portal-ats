@@ -1,6 +1,5 @@
 
 from django.shortcuts import get_object_or_404
-
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -23,6 +22,7 @@ def can_view_feedback(user, feedback):
         or (
             user.role == "CANDIDATE"
             and application.candidate_id == user.id
+            and feedback.is_shared_with_candidate
         )
     )
 
@@ -52,12 +52,15 @@ def interview_feedback_list_create(request):
 
         if request.user.role == "CANDIDATE":
             feedback = feedback.filter(
-                interview__application__candidate=request.user
+                interview__application__candidate=request.user,
+                is_shared_with_candidate=True,
             )
+
         elif request.user.role == "RECRUITER":
             feedback = feedback.filter(
                 interview__application__job__recruiter=request.user
             )
+
         elif request.user.role != "ADMIN":
             return Response(
                 {"detail": "You do not have permission to view feedback."},
@@ -67,6 +70,7 @@ def interview_feedback_list_create(request):
         serializer = InterviewFeedbackSerializer(feedback, many=True)
         return Response(serializer.data)
 
+    # POST: Only recruiters and admins can submit feedback.
     if request.user.role not in ["RECRUITER", "ADMIN"]:
         return Response(
             {"detail": "Only recruiters and admins can submit feedback."},
@@ -97,7 +101,11 @@ def interview_feedback_list_create(request):
 
     if interview.status != Interview.Status.COMPLETED:
         return Response(
-            {"detail": "Feedback can only be submitted for completed interviews."},
+            {
+                "detail": (
+                    "Feedback can only be submitted for completed interviews."
+                )
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -114,12 +122,16 @@ def interview_feedback_list_create(request):
             interview=interview,
             submitted_by=request.user,
         )
+
         return Response(
             InterviewFeedbackSerializer(feedback).data,
             status=status.HTTP_201_CREATED,
         )
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 @api_view(["GET", "PATCH"])
@@ -144,6 +156,7 @@ def interview_feedback_detail(request, pk):
 
         return Response(InterviewFeedbackSerializer(feedback).data)
 
+    # PATCH: Only the owning recruiter or an admin can edit feedback.
     if not can_manage_feedback(request.user, feedback.interview):
         return Response(
             {"detail": "You cannot edit this feedback."},
@@ -160,4 +173,7 @@ def interview_feedback_detail(request, pk):
         serializer.save()
         return Response(serializer.data)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST,
+    )
