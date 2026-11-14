@@ -265,16 +265,10 @@ function Applications() {
 
                             <div className="timeline-content">
                               <h4>
-                                {event.old_status
-                                  ? `${event.old_status.replaceAll(
-                                      "_",
-                                      " "
-                                    )} → ${event.new_status.replaceAll(
-                                      "_",
-                                      " "
-                                    )}`
-                                  : event.new_status.replaceAll("_", " ")}
-                              </h4>
+  {event.old_status
+    ? `${event.old_status.replaceAll("_", " ")} → ${event.new_status.replaceAll("_", " ")}`
+    : event.new_status.replaceAll("_", " ")}
+</h4>
 
                               <p>
                                 Updated by:{" "}
