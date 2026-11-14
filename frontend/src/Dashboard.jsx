@@ -2,6 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+
 const API_URL = "http://127.0.0.1:8000/api";
 
 function Dashboard() {
@@ -12,6 +26,7 @@ function Dashboard() {
 
   const [applications, setApplications] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
+
   const [applicationStats, setApplicationStats] = useState({
     total: 0,
     underReview: 0,
@@ -23,12 +38,15 @@ function Dashboard() {
 
   const [recruiterJobs, setRecruiterJobs] = useState([]);
   const [recruiterApplications, setRecruiterApplications] = useState([]);
+  const [recruiterAllApplications, setRecruiterAllApplications] = useState([]);
+
   const [recruiterJobStats, setRecruiterJobStats] = useState({
     total: 0,
     active: 0,
     draft: 0,
     closed: 0,
   });
+
   const [recruiterApplicationStats, setRecruiterApplicationStats] = useState({
     total: 0,
     underReview: 0,
@@ -67,6 +85,7 @@ function Dashboard() {
         const userData = await fetchData("/auth/me/");
         setUser(userData);
 
+        // Candidate dashboard data
         if (userData.role === "CANDIDATE") {
           const results = await Promise.allSettled([
             fetchData("/notifications/"),
@@ -106,6 +125,7 @@ function Dashboard() {
           ];
 
           const completedItems = completionChecks.filter(Boolean).length;
+
           setProfileCompletion(
             Math.round((completedItems / completionChecks.length) * 100)
           );
@@ -133,6 +153,7 @@ function Dashboard() {
           setApplications(applicationData.slice(0, 5));
         }
 
+        // Recruiter dashboard data
         if (userData.role === "RECRUITER") {
           const results = await Promise.allSettled([
             fetchData("/jobs/"),
@@ -150,7 +171,6 @@ function Dashboard() {
             throw applicationsResult.reason;
           }
 
-          // Count only jobs owned by the currently logged-in recruiter.
           const ownJobs = jobsResult.value.filter(
             (job) => job.recruiter === userData.id
           );
@@ -190,7 +210,13 @@ function Dashboard() {
           );
 
           setRecruiterJobs(ownJobs);
+
+          // Keep all applications for analytics.
+          setRecruiterAllApplications(recruiterApplicationData);
+
+          // Keep only five for the recent applicants table.
           setRecruiterApplications(recentApplications.slice(0, 5));
+
           setRecruiterJobStats(jobStats);
           setRecruiterApplicationStats(applicantStats);
         }
@@ -232,6 +258,94 @@ function Dashboard() {
       .toLowerCase()
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
   };
+
+  // Application status chart data
+  const statusChartData = [
+    {
+      name: "Applied / Under Review",
+      value: recruiterAllApplications.filter((app) =>
+        ["APPLIED", "UNDER_REVIEW"].includes(app.status)
+      ).length,
+    },
+    {
+      name: "Shortlisted",
+      value: recruiterAllApplications.filter(
+        (app) => app.status === "SHORTLISTED"
+      ).length,
+    },
+    {
+      name: "Interview",
+      value: recruiterAllApplications.filter(
+        (app) => app.status === "INTERVIEW"
+      ).length,
+    },
+    {
+      name: "Selected",
+      value: recruiterAllApplications.filter(
+        (app) => app.status === "SELECTED"
+      ).length,
+    },
+    {
+      name: "Rejected",
+      value: recruiterAllApplications.filter(
+        (app) => app.status === "REJECTED"
+      ).length,
+    },
+  ].filter((item) => item.value > 0);
+
+  const statusChartColors = [
+    "#8b9cf6",
+    "#a78bfa",
+    "#f6c177",
+    "#65c99a",
+    "#ef8585",
+  ];
+
+  // Selection conversion rate
+  const hiringConversionRate =
+    recruiterApplicationStats.total > 0
+      ? Math.round(
+          (recruiterApplicationStats.selected /
+            recruiterApplicationStats.total) *
+            100
+        )
+      : 0;
+
+  // Job-wise application performance
+  const jobPerformanceData = Object.values(
+    recruiterAllApplications.reduce((groups, application) => {
+      const jobTitle =
+        application.job_title ||
+        recruiterJobs.find(
+          (job) =>
+            String(job.id) ===
+            String(
+              typeof application.job === "object"
+                ? application.job?.id
+                : application.job
+            )
+        )?.title ||
+        "Untitled Job";
+
+      if (!groups[jobTitle]) {
+        groups[jobTitle] = {
+          jobTitle,
+          applications: 0,
+          selected: 0,
+        };
+      }
+
+      groups[jobTitle].applications += 1;
+
+      if (application.status === "SELECTED") {
+        groups[jobTitle].selected += 1;
+      }
+
+      return groups;
+    }, {})
+  )
+    .sort((a, b) => b.applications - a.applications)
+    .slice(0, 6);
 
   if (loading) {
     return (
@@ -295,6 +409,7 @@ function Dashboard() {
           </p>
         </section>
 
+        {/* RECRUITER DASHBOARD */}
         {user.role === "RECRUITER" && (
           <>
             <section className="dashboard-section">
@@ -377,6 +492,173 @@ function Dashboard() {
               </div>
             </section>
 
+            {/* RECRUITER ANALYTICS */}
+            <section className="dashboard-section">
+              <div className="dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">HIRING ANALYTICS</span>
+                  <h2>Recruitment Performance</h2>
+                </div>
+              </div>
+
+              <div className="dashboard-analytics-grid">
+                {/* Application status chart */}
+                <article className="dashboard-analytics-card">
+                  <div className="dashboard-section-heading">
+                    <div>
+                      <h3>Application Status Distribution</h3>
+                      <p>Breakdown of all applications received</p>
+                    </div>
+                  </div>
+
+                  {recruiterAllApplications.length === 0 ? (
+                    <div className="dashboard-empty-state">
+                      <p>No application data available yet.</p>
+                    </div>
+                  ) : (
+                    <div className="dashboard-chart">
+                      <ResponsiveContainer width="100%" height={280}>
+                        <PieChart>
+                          <Pie
+                            data={statusChartData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={88}
+                            innerRadius={48}
+                            paddingAngle={3}
+                          >
+                            {statusChartData.map((entry, index) => (
+                              <Cell
+                                key={entry.name}
+                                fill={
+                                  statusChartColors[
+                                    index % statusChartColors.length
+                                  ]
+                                }
+                              />
+                            ))}
+                          </Pie>
+
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </article>
+
+                {/* Hiring conversion rate */}
+                <article className="dashboard-analytics-card dashboard-conversion-card">
+                  <span className="eyebrow">HIRING CONVERSION</span>
+                  <h3>Selection Rate</h3>
+
+                  <strong className="dashboard-conversion-value">
+                    {hiringConversionRate}%
+                  </strong>
+
+                  <p>
+                    {recruiterApplicationStats.selected} selected out of{" "}
+                    {recruiterApplicationStats.total} total applications.
+                  </p>
+
+                  <div
+                    className="dashboard-progress-track"
+                    role="progressbar"
+                    aria-valuenow={hiringConversionRate}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Hiring selection rate"
+                  >
+                    <div
+                      className="dashboard-progress-fill"
+                      style={{ width: `${hiringConversionRate}%` }}
+                    />
+                  </div>
+
+                  {recruiterApplicationStats.total === 0 && (
+                    <p className="dashboard-analytics-note">
+                      The rate will appear when candidates apply to your jobs.
+                    </p>
+                  )}
+                </article>
+              </div>
+
+              {/* Job-wise performance chart */}
+              <article className="dashboard-analytics-card dashboard-job-performance">
+                <div className="dashboard-section-heading">
+                  <div>
+                    <h3>Job-wise Application Performance</h3>
+                    <p>Top jobs by number of applications</p>
+                  </div>
+                </div>
+
+                {jobPerformanceData.length === 0 ? (
+                  <div className="dashboard-empty-state">
+                    <p>No job application data available yet.</p>
+                  </div>
+                ) : (
+                  <div className="dashboard-chart dashboard-chart-wide">
+                    <ResponsiveContainer width="100%" height={320}>
+                      <BarChart
+                        data={jobPerformanceData}
+                        margin={{
+                          top: 12,
+                          right: 18,
+                          left: 0,
+                          bottom: 8,
+                        }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="var(--border)"
+                        />
+
+                        <XAxis
+                          dataKey="jobTitle"
+                          tick={{
+                            fill: "var(--text-muted)",
+                            fontSize: 12,
+                          }}
+                          interval={0}
+                          angle={-15}
+                          textAnchor="end"
+                          height={72}
+                        />
+
+                        <YAxis
+                          allowDecimals={false}
+                          tick={{
+                            fill: "var(--text-muted)",
+                            fontSize: 12,
+                          }}
+                        />
+
+                        <Tooltip />
+                        <Legend />
+
+                        <Bar
+                          dataKey="applications"
+                          name="Applications"
+                          fill="#8b9cf6"
+                          radius={[6, 6, 0, 0]}
+                        />
+
+                        <Bar
+                          dataKey="selected"
+                          name="Selected"
+                          fill="#65c99a"
+                          radius={[6, 6, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </article>
+            </section>
+
+            {/* RECENT APPLICANTS */}
             <section className="dashboard-section">
               <div className="dashboard-section-heading">
                 <div>
@@ -419,10 +701,13 @@ function Dashboard() {
                           <td>
                             {application.candidate_name || "Candidate"}
                           </td>
+
                           <td>
                             {application.job_title || "Untitled Job"}
                           </td>
+
                           <td>{formatDate(application.applied_at)}</td>
+
                           <td>
                             <span
                               className={`dashboard-status dashboard-status-${(
@@ -440,6 +725,7 @@ function Dashboard() {
               )}
             </section>
 
+            {/* RECRUITER QUICK ACTIONS */}
             <section className="dashboard-section">
               <div className="dashboard-section-heading">
                 <div>
@@ -453,8 +739,12 @@ function Dashboard() {
                   <div className="dashboard-icon" aria-hidden="true">
                     +
                   </div>
+
                   <h2>Post a Job</h2>
-                  <p>Create a new job opening and publish it for candidates.</p>
+                  <p>
+                    Create a new job opening and publish it for candidates.
+                  </p>
+
                   <Link to="/jobs" className="button button-primary">
                     Create Job
                   </Link>
@@ -464,10 +754,12 @@ function Dashboard() {
                   <div className="dashboard-icon" aria-hidden="true">
                     J
                   </div>
+
                   <h2>Manage Jobs</h2>
                   <p>
                     Edit your job postings, publish drafts, or close positions.
                   </p>
+
                   <Link to="/jobs" className="button button-primary">
                     Manage Jobs
                   </Link>
@@ -477,25 +769,28 @@ function Dashboard() {
                   <div className="dashboard-icon" aria-hidden="true">
                     A
                   </div>
+
                   <h2>View Applicants</h2>
                   <p>
                     Review candidates and update their application status.
                   </p>
+
                   <Link to="/applicants" className="button button-primary">
                     View Applicants
                   </Link>
                 </article>
 
-                {/* Phase 19: Company Profile Quick Action */}
                 <article className="dashboard-card">
                   <div className="dashboard-icon" aria-hidden="true">
                     C
                   </div>
+
                   <h2>Company Profile</h2>
                   <p>
                     Manage your company information, logo, website, and
                     organization details.
                   </p>
+
                   <Link
                     to="/company-profile"
                     className="button button-primary"
@@ -508,6 +803,7 @@ function Dashboard() {
           </>
         )}
 
+        {/* CANDIDATE DASHBOARD */}
         {user.role === "CANDIDATE" && (
           <>
             <section className="dashboard-section">
@@ -555,6 +851,7 @@ function Dashboard() {
               </div>
             </section>
 
+            {/* PROFILE COMPLETION */}
             <section className="dashboard-section dashboard-progress-card">
               <div className="dashboard-section-heading">
                 <div>
@@ -592,6 +889,7 @@ function Dashboard() {
               </Link>
             </section>
 
+            {/* RECENT APPLICATIONS */}
             <section className="dashboard-section">
               <div className="dashboard-section-heading">
                 <div>
@@ -607,9 +905,11 @@ function Dashboard() {
               {applications.length === 0 ? (
                 <div className="dashboard-empty-state">
                   <h3>No applications yet</h3>
+
                   <p>
                     Start exploring jobs and submit your first application.
                   </p>
+
                   <Link to="/" className="button button-primary">
                     Explore Jobs
                   </Link>
@@ -632,10 +932,13 @@ function Dashboard() {
                           <td>
                             {application.job_title || "Untitled Job"}
                           </td>
+
                           <td>
                             {application.company_name || "Not available"}
                           </td>
+
                           <td>{formatDate(application.applied_at)}</td>
+
                           <td>
                             <span
                               className={`dashboard-status dashboard-status-${(
@@ -655,15 +958,19 @@ function Dashboard() {
           </>
         )}
 
+        {/* SHARED DASHBOARD CARDS */}
         <section className="dashboard-grid">
           {user.role === "CANDIDATE" && (
             <article className="dashboard-card">
               <div className="dashboard-icon">🔔</div>
+
               <h2>Notifications</h2>
+
               <p>
                 You have {unreadNotifications} unread notification(s) about
                 your job applications.
               </p>
+
               <Link to="/notifications" className="button button-primary">
                 View Notifications
               </Link>
@@ -674,10 +981,13 @@ function Dashboard() {
             <>
               <article className="dashboard-card">
                 <div className="dashboard-icon">📄</div>
+
                 <h2>My Applications</h2>
+
                 <p>
                   Track the jobs you have applied for and monitor their status.
                 </p>
+
                 <Link to="/applications" className="button button-primary">
                   View Applications
                 </Link>
@@ -685,21 +995,28 @@ function Dashboard() {
 
               <article className="dashboard-card">
                 <div className="dashboard-icon">📋</div>
+
                 <h2>My Resumes</h2>
+
                 <p>
                   Upload, view, download, and manage your professional resumes.
                 </p>
+
                 <Link to="/resumes" className="button button-primary">
                   Manage Resumes
                 </Link>
               </article>
-                            <article className="dashboard-card">
+
+              <article className="dashboard-card">
                 <div className="dashboard-icon">🔔</div>
+
                 <h2>Job Alerts</h2>
+
                 <p>
                   Create and manage job alerts to get notified about matching
                   opportunities through in-app and email notifications.
                 </p>
+
                 <Link to="/job-alerts" className="button button-primary">
                   Manage Job Alerts
                 </Link>
@@ -707,6 +1024,7 @@ function Dashboard() {
             </>
           )}
 
+          {/* ACCOUNT INFORMATION */}
           <section className="dashboard-card dashboard-profile">
             <h2>Account Information</h2>
 
@@ -723,13 +1041,17 @@ function Dashboard() {
             </p>
           </section>
 
+          {/* ADMIN DASHBOARD */}
           {user.role === "ADMIN" && (
             <article className="dashboard-card">
               <div className="dashboard-icon">👥</div>
+
               <h2>Manage Applicants</h2>
+
               <p>
                 Review applications across the platform and update their status.
               </p>
+
               <Link to="/applicants" className="button button-primary">
                 View Applicants
               </Link>
@@ -737,6 +1059,7 @@ function Dashboard() {
           )}
         </section>
 
+        {/* DASHBOARD ACTIONS */}
         <div className="dashboard-actions">
           {user.role === "CANDIDATE" && (
             <Link to="/" className="button button-primary">
