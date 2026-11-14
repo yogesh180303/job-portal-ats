@@ -513,6 +513,8 @@ class Interview(models.Model):
         choices=Status.choices,
         default=Status.SCHEDULED,
     )
+    reminder_24h_sent = models.BooleanField(default=False)
+    reminder_1h_sent = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
