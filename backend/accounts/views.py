@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+import zipfile
+
+from docx import Document
+from pypdf import PdfReader
 
 from .serializers import (
     CandidateRegistrationSerializer,
@@ -331,6 +335,36 @@ def skill_detail(request, pk):
         status=status.HTTP_400_BAD_REQUEST,
     )
 
+def validate_resume_file(uploaded_file):
+    file_name = uploaded_file.name.lower()
+
+    try:
+        uploaded_file.seek(0)
+
+        if file_name.endswith(".pdf"):
+            reader = PdfReader(uploaded_file, strict=True)
+
+            if not reader.pages:
+                return "The PDF file contains no pages."
+
+        elif file_name.endswith(".docx"):
+            if not zipfile.is_zipfile(uploaded_file):
+                return "The DOCX file is not a valid Word document."
+
+            uploaded_file.seek(0)
+            Document(uploaded_file)
+
+        else:
+            return "Only PDF and DOCX files are allowed."
+
+    except Exception:
+        return "The uploaded file is invalid or corrupted."
+
+    finally:
+        uploaded_file.seek(0)
+
+    return None
+
 
 # Resume APIs
 
@@ -375,6 +409,12 @@ def resume_list_create(request):
     if uploaded_file.size > 5 * 1024 * 1024:
         return Response(
             {"file": ["File size must not exceed 5 MB."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    file_error = validate_resume_file(uploaded_file)
+    if file_error:
+        return Response(
+            {"error": file_error},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
