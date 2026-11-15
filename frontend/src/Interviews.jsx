@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "./Interviews.css";
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -17,6 +16,8 @@ const emptyForm = {
 };
 
 function Interviews() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [interviews, setInterviews] = useState([]);
   const [applications, setApplications] = useState([]);
   const [user, setUser] = useState(null);
@@ -119,6 +120,24 @@ function Interviews() {
 
     loadPage();
   }, []);
+
+  // Open an interview selected from the calendar
+  useEffect(() => {
+    const interviewId = searchParams.get("edit");
+
+    if (!interviewId || loading || !isManager) {
+      return;
+    }
+
+    const interview = interviews.find(
+      (item) => String(item.id) === interviewId
+    );
+
+    if (interview && interview.status === "SCHEDULED") {
+      startEditing(interview);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, loading, isManager, interviews]);
 
   // Scheduling form changes
   const handleChange = (event) => {

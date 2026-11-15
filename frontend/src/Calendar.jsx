@@ -15,6 +15,7 @@ const dateKey = (date) => {
 function Calendar() {
   const today = new Date();
 
+  const [user, setUser] = useState(null);
   const [interviews, setInterviews] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
@@ -23,8 +24,11 @@ function Calendar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const isManager =
+    user && ["RECRUITER", "ADMIN"].includes(user.role);
+
   useEffect(() => {
-    const loadInterviews = async () => {
+    const loadCalendar = async () => {
       const token = sessionStorage.getItem("accessToken");
 
       if (!token) {
@@ -33,28 +37,41 @@ function Calendar() {
         return;
       }
 
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
       try {
-        const response = await fetch(`${API_URL}/interviews/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const [userResponse, interviewResponse] = await Promise.all([
+          fetch(`${API_URL}/auth/me/`, { headers }),
+          fetch(`${API_URL}/interviews/`, { headers }),
+        ]);
 
-        const data = await response.json();
+        const userData = await userResponse.json();
+        const interviewData = await interviewResponse.json();
 
-        if (!response.ok) {
-          throw new Error(data.detail || "Unable to load interviews.");
+        if (!userResponse.ok) {
+          throw new Error("Unable to load account information.");
         }
 
-        setInterviews(Array.isArray(data) ? data : []);
+        if (!interviewResponse.ok) {
+          throw new Error(
+            interviewData.detail || "Unable to load interviews."
+          );
+        }
+
+        setUser(userData);
+        setInterviews(
+          Array.isArray(interviewData) ? interviewData : []
+        );
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Unable to load your calendar.");
       } finally {
         setLoading(false);
       }
     };
 
-    loadInterviews();
+    loadCalendar();
   }, []);
 
   const calendarDays = useMemo(() => {
@@ -127,9 +144,12 @@ function Calendar() {
         </Link>
 
         <div className="calendar-nav-actions">
-          <Link to="/interviews" className="button button-outline">
-            Interview Management
-          </Link>
+          {isManager && (
+            <Link to="/interviews" className="button button-outline">
+              Interview Management
+            </Link>
+          )}
+
           <Link to="/dashboard" className="button button-outline">
             Dashboard
           </Link>
@@ -140,7 +160,9 @@ function Calendar() {
         <header className="calendar-heading">
           <span className="eyebrow">INTERVIEW SCHEDULE</span>
           <h1>Interview Calendar</h1>
-          <p>View your interviews by date and keep track of your schedule.</p>
+          <p>
+            View your interviews by date and keep track of your schedule.
+          </p>
         </header>
 
         {error && <div className="calendar-error">{error}</div>}
@@ -158,6 +180,7 @@ function Calendar() {
                       year: "numeric",
                     })}
                   </h2>
+
                   <p>{interviews.length} total interviews</p>
                 </div>
 
@@ -165,6 +188,7 @@ function Calendar() {
                   <button type="button" onClick={goToToday}>
                     Today
                   </button>
+
                   <button
                     type="button"
                     aria-label="Previous month"
@@ -172,6 +196,7 @@ function Calendar() {
                   >
                     ‹
                   </button>
+
                   <button
                     type="button"
                     aria-label="Next month"
@@ -193,8 +218,10 @@ function Calendar() {
 
                 {calendarDays.map((date, index) => {
                   const key = dateKey(date);
+
                   const inCurrentMonth =
                     date.getMonth() === currentMonth.getMonth();
+
                   const dayInterviews = interviewsByDate[key] || [];
                   const isSelected = selectedDate === key;
                   const isToday = key === dateKey(today);
@@ -221,9 +248,12 @@ function Calendar() {
                       {dayInterviews.length > 0 && (
                         <span className="calendar-day-events">
                           <span className="calendar-event-dot" />
+
                           <span>
                             {dayInterviews.length}{" "}
-                            {dayInterviews.length === 1 ? "interview" : "interviews"}
+                            {dayInterviews.length === 1
+                              ? "interview"
+                              : "interviews"}
                           </span>
                         </span>
                       )}
@@ -239,9 +269,12 @@ function Calendar() {
                   <span className="eyebrow">DAILY SCHEDULE</span>
                   <h2>{formatSelectedDate()}</h2>
                 </div>
+
                 <span className="calendar-agenda-count">
                   {selectedInterviews.length}{" "}
-                  {selectedInterviews.length === 1 ? "interview" : "interviews"}
+                  {selectedInterviews.length === 1
+                    ? "interview"
+                    : "interviews"}
                 </span>
               </div>
 
@@ -256,7 +289,8 @@ function Calendar() {
                   {[...selectedInterviews]
                     .sort(
                       (a, b) =>
-                        new Date(a.scheduled_at) - new Date(b.scheduled_at)
+                        new Date(a.scheduled_at) -
+                        new Date(b.scheduled_at)
                     )
                     .map((interview) => (
                       <article
@@ -270,18 +304,31 @@ function Calendar() {
 
                         <div className="calendar-interview-info">
                           <h3>{interview.title}</h3>
+
                           <p>
                             {interview.job_title}
                             {interview.company_name
                               ? ` · ${interview.company_name}`
                               : ""}
                           </p>
+
                           <p>
-                            Candidate: {interview.candidate_name || "Not specified"}
+                            Candidate:{" "}
+                            {interview.candidate_name || "Not specified"}
                           </p>
+
                           <p>
                             {interview.interview_type?.replace("_", " ")}
                           </p>
+
+                          {isManager && (
+                            <Link
+                              to={`/interviews?edit=${interview.id}`}
+                              className="calendar-manage-link"
+                            >
+                              Open in Interview Management →
+                            </Link>
+                          )}
                         </div>
 
                         <span
