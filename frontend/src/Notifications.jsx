@@ -100,6 +100,16 @@ function Notifications() {
     return types[type] || "Notification";
   };
 
+const getJobId = (notification) => {
+  if (notification.notification_type !== "JOB_ALERT") {
+    return null;
+  }
+
+  const match = notification.message.match(/Job ID:\s*(\d+)/i);
+
+  return match ? match[1] : null;
+};
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
@@ -189,8 +199,17 @@ function Notifications() {
                 </div>
 
                 <p className="notification-body">
-                  {notification.message}
-                </p>
+  {notification.message}
+</p>
+
+{getJobId(notification) && (
+  <Link
+    to={`/job-details/${getJobId(notification)}`}
+    className="button button-outline"
+  >
+    View Matching Job
+  </Link>
+)}
 
                 <div className="notification-card-bottom">
                   <span className="notification-date">
