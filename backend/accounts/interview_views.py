@@ -161,7 +161,10 @@ def interview_list_create(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    serializer = InterviewSerializer(data=request.data)
+    serializer = InterviewSerializer(
+    data=request.data,
+    context={"application": application},
+)
 
     if serializer.is_valid():
         interview = serializer.save(
