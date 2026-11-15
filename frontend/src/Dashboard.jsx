@@ -39,6 +39,8 @@ function Dashboard() {
   const [recruiterJobs, setRecruiterJobs] = useState([]);
   const [recruiterApplications, setRecruiterApplications] = useState([]);
   const [recruiterAllApplications, setRecruiterAllApplications] = useState([]);
+  const [recruiterInterviews, setRecruiterInterviews] = useState([]);
+  const [recruiterInterviewFeedback, setRecruiterInterviewFeedback] = useState([]);
 
   const [recruiterJobStats, setRecruiterJobStats] = useState({
     total: 0,
@@ -156,12 +158,16 @@ function Dashboard() {
         // Recruiter dashboard data
         if (userData.role === "RECRUITER") {
           const results = await Promise.allSettled([
-            fetchData("/jobs/"),
-            fetchData("/applications/"),
-          ]);
+  fetchData("/jobs/"),
+  fetchData("/applications/"),
+  fetchData("/interviews/"),
+  fetchData("/interview-feedback/"),
+]);
 
           const jobsResult = results[0];
           const applicationsResult = results[1];
+          const interviewsResult = results[2];
+          const feedbackResult = results[3];
 
           if (jobsResult.status === "rejected") {
             throw jobsResult.reason;
@@ -213,6 +219,17 @@ function Dashboard() {
 
           // Keep all applications for analytics.
           setRecruiterAllApplications(recruiterApplicationData);
+          setRecruiterInterviews(
+  interviewsResult.status === "fulfilled"
+    ? interviewsResult.value
+    : []
+);
+
+setRecruiterInterviewFeedback(
+  feedbackResult.status === "fulfilled"
+    ? feedbackResult.value
+    : []
+);
 
           // Keep only five for the recent applicants table.
           setRecruiterApplications(recentApplications.slice(0, 5));
@@ -229,6 +246,258 @@ function Dashboard() {
 
     fetchDashboard();
   }, [navigate]);
+
+  const exportRecruiterApplications = () => {
+  if (recruiterAllApplications.length === 0) {
+    return;
+  }
+
+  const headers = [
+    "Candidate Name",
+    "Candidate Email",
+    "Location",
+    "Job Title",
+    "Company",
+    "Application Status",
+    "Applied At",
+    "Last Updated",
+  ];
+
+  const escapeCsvValue = (value) => {
+    const text = String(value ?? "");
+    const safeText = /^[\t\r ]*[=+\-@]/.test(text)
+      ? `'${text}`
+      : text;
+
+    return `"${safeText.replaceAll('"', '""')}"`;
+  };
+
+  const rows = recruiterAllApplications.map((application) => [
+    application.candidate_full_name || application.candidate_name,
+    application.candidate_email,
+    application.candidate_location,
+    application.job_title,
+    application.company_name,
+    application.status,
+    application.applied_at,
+    application.updated_at,
+  ]);
+
+  const csvContent = [
+    headers,
+    ...rows,
+  ]
+    .map((row) => row.map(escapeCsvValue).join(","))
+    .join("\r\n");
+
+  const blob = new Blob(
+    ["\uFEFF" + csvContent],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `recruiter-applications-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+};
+
+const exportJobWiseReport = () => {
+  if (recruiterJobs.length === 0) {
+    return;
+  }
+
+  const headers = [
+    "Job Title",
+    "Company",
+    "Job Status",
+    "Total Applications",
+    "Under Review",
+    "Shortlisted",
+    "Interviews",
+    "Selected",
+    "Rejected",
+    "Withdrawn",
+    "Hiring Conversion Rate",
+  ];
+
+  const escapeCsvValue = (value) => {
+    const text = String(value ?? "");
+    const safeText = /^[\t\r ]*[=+\-@]/.test(text)
+      ? `'${text}`
+      : text;
+
+    return `"${safeText.replaceAll('"', '""')}"`;
+  };
+
+  const rows = recruiterJobs.map((job) => {
+    const applications = recruiterAllApplications.filter(
+      (application) =>
+        String(
+          typeof application.job === "object"
+            ? application.job?.id
+            : application.job
+        ) === String(job.id)
+    );
+
+    const total = applications.length;
+    const selected = applications.filter(
+      (application) => application.status === "SELECTED"
+    ).length;
+
+    const underReview = applications.filter((application) =>
+      ["APPLIED", "UNDER_REVIEW"].includes(application.status)
+    ).length;
+
+    const shortlisted = applications.filter(
+      (application) => application.status === "SHORTLISTED"
+    ).length;
+
+    const interviews = applications.filter(
+      (application) => application.status === "INTERVIEW"
+    ).length;
+
+    const rejected = applications.filter(
+      (application) => application.status === "REJECTED"
+    ).length;
+
+    const withdrawn = applications.filter(
+      (application) => application.status === "WITHDRAWN"
+    ).length;
+
+    const conversionRate =
+      total > 0 ? `${Math.round((selected / total) * 100)}%` : "0%";
+
+    return [
+      job.title,
+      job.company_name,
+      job.status,
+      total,
+      underReview,
+      shortlisted,
+      interviews,
+      selected,
+      rejected,
+      withdrawn,
+      conversionRate,
+    ];
+  });
+
+  const csvContent = [
+    headers,
+    ...rows,
+  ]
+    .map((row) => row.map(escapeCsvValue).join(","))
+    .join("\r\n");
+
+  const blob = new Blob(
+    ["\uFEFF" + csvContent],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `job-wise-recruitment-report-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+};
+
+const exportInterviewReport = () => {
+  if (recruiterInterviews.length === 0) {
+    return;
+  }
+
+  const headers = [
+    "Candidate Name",
+    "Candidate Email",
+    "Job Title",
+    "Company",
+    "Interview Title",
+    "Interview Date",
+    "Interview Type",
+    "Duration (Minutes)",
+    "Interview Status",
+    "Technical Skills Rating",
+    "Communication Rating",
+    "Problem Solving Rating",
+    "Overall Rating",
+    "Recommendation",
+  ];
+
+  const escapeCsvValue = (value) => {
+    const text = String(value ?? "");
+    const safeText = /^[\t\r ]*[=+\-@]/.test(text)
+      ? `'${text}`
+      : text;
+
+    return `"${safeText.replaceAll('"', '""')}"`;
+  };
+
+  const rows = recruiterInterviews.map((interview) => {
+    const feedback = recruiterInterviewFeedback.find(
+      (item) => String(item.interview) === String(interview.id)
+    );
+
+    return [
+      interview.candidate_name,
+      interview.candidate_email,
+      interview.job_title,
+      interview.company_name,
+      interview.title,
+      interview.scheduled_at,
+      interview.interview_type,
+      interview.duration_minutes,
+      interview.status,
+      feedback?.technical_skills ?? "",
+      feedback?.communication ?? "",
+      feedback?.problem_solving ?? "",
+      feedback?.overall_rating ?? "",
+      feedback?.recommendation ?? "",
+    ];
+  });
+
+  const csvContent = [
+    headers,
+    ...rows,
+  ]
+    .map((row) => row.map(escapeCsvValue).join(","))
+    .join("\r\n");
+
+  const blob = new Blob(
+    ["\uFEFF" + csvContent],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `interview-report-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+};
 
   const handleLogout = () => {
     sessionStorage.removeItem("accessToken");
@@ -530,7 +799,31 @@ function Dashboard() {
                 <div>
                   <span className="eyebrow">HIRING ANALYTICS</span>
                   <h2>Recruitment Performance</h2>
+
                 </div>
+               <button
+  type="button"
+  className="button button-primary"
+  onClick={exportRecruiterApplications}
+  disabled={recruiterAllApplications.length === 0}
+>
+  Export Applications CSV
+</button><button
+  type="button"
+  className="button button-outline"
+  onClick={exportJobWiseReport}
+  disabled={recruiterJobs.length === 0}
+>
+  Export Job-wise Report
+</button>
+<button
+  type="button"
+  className="button button-outline"
+  onClick={exportInterviewReport}
+  disabled={recruiterInterviews.length === 0}
+>
+  Export Interview Report
+</button>
               </div>
 
               <div className="dashboard-analytics-grid">
