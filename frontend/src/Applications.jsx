@@ -84,9 +84,28 @@ function Applications() {
         throw new Error(data.detail || "Failed to withdraw application.");
       }
 
+      // Keep the application visible and update its status.
       setApplications((previous) =>
-        previous.filter((application) => application.id !== applicationId)
+        previous.map((application) =>
+          application.id === applicationId
+            ? { ...application, status: "WITHDRAWN" }
+            : application
+        )
       );
+
+      // Clear cached timeline so the withdrawal event is loaded.
+      setTimelines((previous) => {
+        const updated = { ...previous };
+        delete updated[applicationId];
+        return updated;
+      });
+
+      setTimelineErrors((previous) => ({
+        ...previous,
+        [applicationId]: "",
+      }));
+
+      setExpandedTimelineId(null);
 
       setMessage("Application withdrawn successfully.");
     } catch (err) {
@@ -129,7 +148,9 @@ function Applications() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Failed to load application timeline.");
+        throw new Error(
+          data.detail || "Failed to load application timeline."
+        );
       }
 
       setTimelines((previous) => ({
@@ -175,12 +196,18 @@ function Applications() {
           </p>
         </div>
 
-        {message && <div className="applications-success">{message}</div>}
+        {message && (
+          <div className="applications-success">{message}</div>
+        )}
 
-        {error && <div className="applications-error">{error}</div>}
+        {error && (
+          <div className="applications-error">{error}</div>
+        )}
 
         {loading ? (
-          <p className="applications-message">Loading your applications...</p>
+          <p className="applications-message">
+            Loading your applications...
+          </p>
         ) : applications.length === 0 ? (
           <div className="applications-empty">
             <h2>No Applications Yet</h2>
@@ -233,16 +260,20 @@ function Applications() {
                       : "View Timeline"}
                   </button>
 
-                  <button
-                    type="button"
-                    className="application-withdraw-button"
-                    onClick={() => handleWithdraw(application.id)}
-                    disabled={withdrawingId === application.id}
-                  >
-                    {withdrawingId === application.id
-                      ? "Withdrawing..."
-                      : "Withdraw Application"}
-                  </button>
+                  {!["WITHDRAWN", "SELECTED", "REJECTED"].includes(
+                    application.status
+                  ) && (
+                    <button
+                      type="button"
+                      className="application-withdraw-button"
+                      onClick={() => handleWithdraw(application.id)}
+                      disabled={withdrawingId === application.id}
+                    >
+                      {withdrawingId === application.id
+                        ? "Withdrawing..."
+                        : "Withdraw Application"}
+                    </button>
+                  )}
                 </div>
 
                 {expandedTimelineId === application.id && (
@@ -265,10 +296,16 @@ function Applications() {
 
                             <div className="timeline-content">
                               <h4>
-  {event.old_status
-    ? `${event.old_status.replaceAll("_", " ")} → ${event.new_status.replaceAll("_", " ")}`
-    : event.new_status.replaceAll("_", " ")}
-</h4>
+                                {event.old_status
+                                  ? `${event.old_status.replaceAll(
+                                      "_",
+                                      " "
+                                    )} → ${event.new_status.replaceAll(
+                                      "_",
+                                      " "
+                                    )}`
+                                  : event.new_status.replaceAll("_", " ")}
+                              </h4>
 
                               <p>
                                 Updated by:{" "}

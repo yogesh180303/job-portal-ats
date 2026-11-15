@@ -418,6 +418,8 @@ class Application(models.Model):
 
         REJECTED = "REJECTED", "Rejected"
 
+        WITHDRAWN = "WITHDRAWN", "Withdrawn"
+
 
 
     candidate = models.ForeignKey(

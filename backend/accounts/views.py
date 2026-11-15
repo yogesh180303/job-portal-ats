@@ -297,7 +297,6 @@ def skill_detail(request, pk):
 
     try:
         profile = CandidateProfile.objects.get(user=request.user)
-
         skill = Skill.objects.get(
             pk=pk,
             profile=profile,
@@ -597,8 +596,7 @@ def application_list_create(request):
 
         elif request.user.role == "RECRUITER":
             applications = Application.objects.filter(
-                job__recruiter=request.user
-            )
+                job__recruiter=request.user            )
 
             # Phase 10: Filter recruiter applications by status.
             application_status = request.query_params.get("status")
@@ -735,7 +733,49 @@ def application_detail(request, pk):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        application.delete()
+        if application.status == Application.Status.WITHDRAWN:
+            return Response(
+                {"detail": "This application has already been withdrawn."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if application.status in [
+            Application.Status.SELECTED,
+            Application.Status.REJECTED,
+        ]:
+            return Response(
+                {
+                    "detail": (
+                        "You cannot withdraw an application "
+                        "that has been selected or rejected."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        old_status = application.status
+        application.status = Application.Status.WITHDRAWN
+        application.save(update_fields=["status", "updated_at"])
+
+        ApplicationStatusHistory.objects.create(
+            application=application,
+            old_status=old_status,
+            new_status=Application.Status.WITHDRAWN,
+            changed_by=request.user,
+        )
+
+        Notification.objects.create(
+            recipient=application.job.recruiter,
+            notification_type=(
+                Notification.NotificationType.APPLICATION_STATUS
+            ),
+            title="Candidate Withdrew Application",
+            message=(
+                f"{application.candidate.username} withdrew their "
+                f"application for {application.job.title}."
+            ),
+            application=application,
+        )
 
         return Response(
             {"message": "Application withdrawn successfully."},
@@ -747,6 +787,16 @@ def application_detail(request, pk):
             {"detail": "You cannot update this application."},
             status=status.HTTP_403_FORBIDDEN,
         )
+
+    if application.status == Application.Status.WITHDRAWN:
+        return Response(
+        {
+            "detail": (
+                "Withdrawn applications cannot be updated."
+            )
+        },
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
     new_status = request.data.get("status")
 
@@ -856,12 +906,12 @@ def application_ats_evaluation(request, pk):
             {"detail": "Only recruiters and admins can evaluate resumes."},
             status=status.HTTP_403_FORBIDDEN,
         )
-
     try:
-        application = Application.objects.select_related(
-            "candidate",
-            "job",
-        ).get(pk=pk)
+        profile = CandidateProfile.objects.get(user=request.user)
+        skill = Skill.objects.get(
+            pk=pk,
+            profile=profile,
+        )
 
     except Application.DoesNotExist:
         return Response(

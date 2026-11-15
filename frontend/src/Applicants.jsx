@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Applicants.css";
@@ -11,6 +12,7 @@ const statusOptions = [
   { value: "INTERVIEW", label: "Interview" },
   { value: "SELECTED", label: "Selected" },
   { value: "REJECTED", label: "Rejected" },
+  { value: "WITHDRAWN", label: "Withdrawn" },
 ];
 
 const atsScoreOptions = [
@@ -148,6 +150,15 @@ function Applicants() {
   }, [statusFilter]);
 
   const handleStatusChange = async (applicationId, newStatus) => {
+    const currentApplicant = applicants.find(
+      (applicant) => applicant.id === applicationId
+    );
+
+    if (currentApplicant?.status === "WITHDRAWN") {
+      setError("Withdrawn applications cannot be updated.");
+      return;
+    }
+
     setUpdatingId(applicationId);
     setError("");
     setMessage("");
@@ -681,7 +692,10 @@ function Applicants() {
                           event.target.value
                         )
                       }
-                      disabled={updatingId === applicant.id}
+                      disabled={
+                        updatingId === applicant.id ||
+                        applicant.status === "WITHDRAWN"
+                      }
                     >
                       {statusOptions.map((option) => (
                         <option
@@ -697,6 +711,13 @@ function Applicants() {
                       <span className="applicant-updating">
                         Updating...
                       </span>
+                    )}
+
+                    {applicant.status === "WITHDRAWN" && (
+                      <p className="applicants-message">
+                        Candidate withdrew this application. Its status can no
+                        longer be changed.
+                      </p>
                     )}
                   </div>
 
@@ -925,10 +946,19 @@ function Applicants() {
 
                                 <div className="timeline-content">
                                   <h4>
-  {event.old_status
-    ? `${event.old_status.replaceAll("_", " ")} → ${event.new_status.replaceAll("_", " ")}`
-    : event.new_status.replaceAll("_", " ")}
-</h4>
+                                    {event.old_status
+                                      ? `${event.old_status.replaceAll(
+                                          "_",
+                                          " "
+                                        )} → ${event.new_status.replaceAll(
+                                          "_",
+                                          " "
+                                        )}`
+                                      : event.new_status.replaceAll(
+                                          "_",
+                                          " "
+                                        )}
+                                  </h4>
 
                                   <p>
                                     <strong>Updated by:</strong>{" "}
