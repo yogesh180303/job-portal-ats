@@ -222,6 +222,28 @@ class ApplicationSerializer(serializers.ModelSerializer):
         source="candidate.username",
         read_only=True,
     )
+    candidate_email = serializers.EmailField(
+        source="candidate.email",
+        read_only=True,
+    )
+
+    candidate_full_name = serializers.CharField(
+        source="candidate.candidate_profile.full_name",
+        read_only=True,
+        default="",
+    )
+
+    candidate_location = serializers.CharField(
+        source="candidate.candidate_profile.location",
+        read_only=True,
+        default="",
+    )
+
+    candidate_summary = serializers.CharField(
+        source="candidate.candidate_profile.professional_summary",
+        read_only=True,
+        default="",
+    )
 
     job_title = serializers.CharField(
         source="job.title",
@@ -239,6 +261,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "id",
             "candidate",
             "candidate_name",
+            "candidate_email",
+            "candidate_full_name",
+            "candidate_location",
+            "candidate_summary",
             "job",
             "job_title",
             "company_name",
@@ -251,6 +277,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "id",
             "candidate",
             "candidate_name",
+            "candidate_email",
+            "candidate_full_name",
+            "candidate_location",
+            "candidate_summary",
             "job_title",
             "company_name",
             "status",

@@ -8,6 +8,7 @@ import zipfile
 from docx import Document
 from pypdf import PdfReader
 
+
 from .serializers import (
     CandidateRegistrationSerializer,
     EmailTokenObtainPairSerializer,
@@ -626,7 +627,16 @@ def job_detail(request, pk):
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def application_list_create(request):
-    from .models import Application, ApplicationStatusHistory, Job
+    from .models import (
+        Application,
+        ApplicationStatusHistory,
+        CandidateProfile,
+        Education,
+        Job,
+        Skill,
+        WorkExperience,
+    )
+    from django.db.models import Q
 
     if request.method == "GET":
         if request.user.role == "CANDIDATE":
@@ -659,6 +669,51 @@ def application_list_create(request):
                 applications = applications.filter(
                     status=application_status
                 )
+                            # Phase 17: Recruiter candidate search and filtering.
+
+            search_query = request.query_params.get("search", "").strip()
+
+            if search_query:
+                applications = applications.filter(
+                    Q(candidate__username__icontains=search_query)
+                    | Q(candidate__email__icontains=search_query)
+                    | Q(candidate__candidate_profile__full_name__icontains=search_query)
+                )
+
+            location_filter = request.query_params.get("location", "").strip()
+
+            if location_filter:
+                applications = applications.filter(
+                    candidate__candidate_profile__location__icontains=location_filter
+                )
+
+            skill_filter = request.query_params.get("skill", "").strip()
+
+            if skill_filter:
+                applications = applications.filter(
+                    Q(candidate__candidate_profile__skills__icontains=skill_filter)
+                    | Q(candidate__candidate_profile__candidate_skills__name__icontains=skill_filter)
+                )
+
+            education_filter = request.query_params.get("education", "").strip()
+
+            if education_filter:
+                applications = applications.filter(
+                    Q(candidate__candidate_profile__educations__degree__icontains=education_filter)
+                    | Q(candidate__candidate_profile__educations__institution__icontains=education_filter)
+                    | Q(candidate__candidate_profile__educations__field_of_study__icontains=education_filter)
+                )
+
+            experience_filter = request.query_params.get("experience", "").strip()
+
+            if experience_filter:
+                applications = applications.filter(
+                    Q(candidate__candidate_profile__work_experiences__job_title__icontains=experience_filter)
+                    | Q(candidate__candidate_profile__work_experiences__company__icontains=experience_filter)
+                    | Q(candidate__candidate_profile__work_experiences__description__icontains=experience_filter)
+                )
+
+            applications = applications.distinct()
 
         elif request.user.role == "ADMIN":
             applications = Application.objects.all()

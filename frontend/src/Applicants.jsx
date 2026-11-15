@@ -50,6 +50,10 @@ function Applicants() {
   const [skillFilter, setSkillFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [locationFilter, setLocationFilter] = useState("");
+  const [educationFilter, setEducationFilter] = useState("");
+  const [experienceFilter, setExperienceFilter] = useState("");
+
   const [sortOption, setSortOption] = useState("NEWEST");
 
   const [expandedTimelineId, setExpandedTimelineId] = useState(null);
@@ -69,10 +73,35 @@ function Applicants() {
       setLoading(true);
       setError("");
 
-      const queryParams =
-        statusFilter === "ALL"
-          ? ""
-          : `?status=${encodeURIComponent(statusFilter)}`;
+      const params = new URLSearchParams();
+
+      if (statusFilter !== "ALL") {
+        params.append("status", statusFilter);
+      }
+
+      if (searchQuery.trim()) {
+        params.append("search", searchQuery.trim());
+      }
+
+      if (locationFilter.trim()) {
+        params.append("location", locationFilter.trim());
+      }
+
+      if (skillFilter !== "ALL") {
+        params.append("skill", skillFilter);
+      }
+
+      if (educationFilter.trim()) {
+        params.append("education", educationFilter.trim());
+      }
+
+      if (experienceFilter.trim()) {
+        params.append("experience", experienceFilter.trim());
+      }
+
+      const queryParams = params.toString()
+        ? `?${params.toString()}`
+        : "";
 
       const response = await fetch(
         `${API_URL}/applications/${queryParams}`,
@@ -147,7 +176,14 @@ function Applicants() {
     }
 
     fetchApplicants();
-  }, [statusFilter]);
+  }, [
+    statusFilter,
+    searchQuery,
+    locationFilter,
+    skillFilter,
+    educationFilter,
+    experienceFilter,
+  ]);
 
   const handleStatusChange = async (applicationId, newStatus) => {
     const currentApplicant = applicants.find(
@@ -322,26 +358,10 @@ function Applicants() {
     return new Date(date).toLocaleString();
   };
 
+  // ATS score filtering remains local.
+  // Name, email, location, skill, education and experience
+  // filtering are handled by the backend.
   const filteredApplicants = applicants.filter((applicant) => {
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.trim().toLowerCase();
-
-      const candidateName = (
-        applicant.candidate_name || ""
-      ).toLowerCase();
-
-      const candidateEmail = (
-        applicant.candidate_email || ""
-      ).toLowerCase();
-
-      if (
-        !candidateName.includes(query) &&
-        !candidateEmail.includes(query)
-      ) {
-        return false;
-      }
-    }
-
     const evaluation = atsResults[applicant.id]?.evaluation;
 
     if (atsScoreFilter !== "ALL") {
@@ -356,19 +376,6 @@ function Applicants() {
         .map(Number);
 
       if (score < minimum || score > maximum) {
-        return false;
-      }
-    }
-
-    if (skillFilter !== "ALL") {
-      const candidateSkills = evaluation?.resume_skills || [];
-
-      const hasSkill = candidateSkills.some(
-        (skill) =>
-          skill.toLowerCase() === skillFilter.toLowerCase()
-      );
-
-      if (!hasSkill) {
         return false;
       }
     }
@@ -525,6 +532,48 @@ function Applicants() {
         </div>
 
         <div className="applicants-filter">
+          <label htmlFor="location-filter">
+            Filter by Candidate Location
+          </label>
+
+          <input
+            id="location-filter"
+            type="text"
+            placeholder="Enter location..."
+            value={locationFilter}
+            onChange={(event) => setLocationFilter(event.target.value)}
+          />
+        </div>
+
+        <div className="applicants-filter">
+          <label htmlFor="education-filter">
+            Filter by Education
+          </label>
+
+          <input
+            id="education-filter"
+            type="text"
+            placeholder="Degree, institution or field of study..."
+            value={educationFilter}
+            onChange={(event) => setEducationFilter(event.target.value)}
+          />
+        </div>
+
+        <div className="applicants-filter">
+          <label htmlFor="experience-filter">
+            Filter by Work Experience
+          </label>
+
+          <input
+            id="experience-filter"
+            type="text"
+            placeholder="Job title, company or experience..."
+            value={experienceFilter}
+            onChange={(event) => setExperienceFilter(event.target.value)}
+          />
+        </div>
+
+        <div className="applicants-filter">
           <label htmlFor="status-filter">
             Filter by Application Status
           </label>
@@ -626,9 +675,8 @@ function Applicants() {
             <h2>No Matching Applicants</h2>
 
             <p>
-              No applicants match the selected status, ATS score,
-              skills, or search. Try changing your filters to see
-              more applicants.
+              No applicants match the selected filters.
+              Try changing your filters to see more applicants.
             </p>
 
             <Link to="/jobs" className="applicants-button">
