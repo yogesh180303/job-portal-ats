@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { Link, Route, Routes } from 'react-router-dom'
+import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import Login from './Login.jsx'
 import Register from './Register.jsx'
 import Dashboard from "./Dashboard";
@@ -51,6 +51,15 @@ const sampleJobs = [
 ]
 
 function App() {
+  useLocation()
+const navigate = useNavigate()
+const isAuthenticated = Boolean(sessionStorage.getItem('accessToken'))
+
+const handleSignOut = () => {
+  sessionStorage.removeItem('accessToken')
+  sessionStorage.removeItem('refreshToken')
+  navigate('/')
+}
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredJobs = sampleJobs.filter((job) => {
@@ -132,13 +141,35 @@ function App() {
               </nav>
 
               <div className="nav-actions">
-                <Link className="button button-outline" to="/login">
-                  Sign in
-                </Link>
-                <Link className="button button-primary" to="/register">
-                  Register
-                </Link>
-              </div>
+  {isAuthenticated ? (
+    <>
+      <Link
+        className="button button-outline"
+        to="/dashboard"
+      >
+        Dashboard
+      </Link>
+
+      <button
+        className="button button-primary"
+        type="button"
+        onClick={handleSignOut}
+      >
+        Sign Out
+      </button>
+    </>
+  ) : (
+    <>
+      <Link className="button button-outline" to="/login">
+        Sign in
+      </Link>
+
+      <Link className="button button-primary" to="/register">
+        Register
+      </Link>
+    </>
+  )}
+</div>
             </header>
 
             <main>
@@ -160,7 +191,7 @@ function App() {
                 >
                   <label className="search-field">
                     <span className="search-symbol" aria-hidden="true">
-                      Ã¢Å’â€¢
+                     🔍
                     </span>
                     <input
                       type="search"
@@ -213,7 +244,7 @@ function App() {
                           <span>{job.type}</span>
                         </div>
                         <button className="job-link" type="button">
-                          View details <span aria-hidden="true">Ã¢â€ â€™</span>
+                          View details <span aria-hidden="true">→</span>
                         </button>
                       </article>
                     ))
