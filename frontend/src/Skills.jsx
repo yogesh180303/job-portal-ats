@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import "./Skills.css";
+import API_BASE_URL from "./api";
 
 function Skills() {
   const [skills, setSkills] = useState([]);
@@ -69,7 +70,7 @@ function Skills() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/skills/${skillId}/`,
+        `${API_BASE_URL}/skills/${skillId}/`,
         {
           method: "DELETE",
           headers: {
@@ -110,7 +111,7 @@ function Skills() {
 
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/api/skills/",
+          `${API_BASE_URL}/skills/`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -162,9 +163,8 @@ function Skills() {
       };
 
       const url = editingId
-        ? `http://127.0.0.1:8000/api/skills/${editingId}/`
-        : "http://127.0.0.1:8000/api/skills/";
-
+        ?  `${API_BASE_URL}/skills/${editingId}/`
+        : `${API_BASE_URL}/skills/`;
       const response = await fetch(url, {
         method: editingId ? "PUT" : "POST",
         headers: {

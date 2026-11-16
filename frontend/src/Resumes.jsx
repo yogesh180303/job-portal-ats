@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Resumes.css";
+import API_BASE_URL from "./api";
 
 function Resumes() {
   const [resumes, setResumes] = useState([]);
@@ -12,7 +13,7 @@ function Resumes() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const API_URL = "http://127.0.0.1:8000/api/resumes/";
+  const API_URL = `${API_BASE_URL}/resumes/`;
 
   const getToken = () => sessionStorage.getItem("accessToken");
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Companies.css";
+import API_BASE_URL from "./api";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = API_BASE_URL;
 
 function Companies() {
   const [companies, setCompanies] = useState([]);

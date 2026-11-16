@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import "./Education.css";
+import API_BASE_URL from "./api";
 
 function Education() {
   const [educations, setEducations] = useState([]);
@@ -81,7 +82,7 @@ const handleDelete = async (educationId) => {
 
   try {
     const response = await fetch(
-      `http://127.0.0.1:8000/api/education/${educationId}/`,
+      `${API_BASE_URL}/education/${educationId}/`,
       {
         method: "DELETE",
         headers: {
@@ -123,7 +124,7 @@ const handleDelete = async (educationId) => {
 
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/api/education/",
+          `${API_BASE_URL}/education/`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -193,8 +194,8 @@ const handleDelete = async (educationId) => {
       console.log("Education data being submitted:", payload);
 
       const url = editingId
-  ? `http://127.0.0.1:8000/api/education/${editingId}/`
-  : "http://127.0.0.1:8000/api/education/";
+  ?  `${API_BASE_URL}/education/${editingId}/`
+  :  `${API_BASE_URL}/education/`;
 
 const response = await fetch(url, {
   method: editingId ? "PUT" : "POST",

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './Auth.css'
+import API_BASE_URL from "./api";
 
 function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,7 +27,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/auth/register/',
+        `${API_BASE_URL}/auth/register/`,
         {
           method: 'POST',
           headers: {

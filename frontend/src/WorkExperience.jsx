@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import "./WorkExperience.css";
+import API_BASE_URL from "./api";
 
 const initialFormData = {
   job_title: "",
@@ -77,7 +78,7 @@ function WorkExperience() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/experience/${experienceId}/`,
+        `${API_BASE_URL}/experience/${experienceId}/`,
         {
           method: "DELETE",
           headers: {
@@ -118,7 +119,7 @@ function WorkExperience() {
 
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/api/experience/",
+          `${API_BASE_URL}/experience/`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -183,9 +184,8 @@ function WorkExperience() {
       };
 
       const url = editingId
-        ? `http://127.0.0.1:8000/api/experience/${editingId}/`
-        : "http://127.0.0.1:8000/api/experience/";
-
+        ? `${API_BASE_URL}/experience/${editingId}/`
+       : `${API_BASE_URL}/experience/`;
       const response = await fetch(url, {
         method: editingId ? "PUT" : "POST",
         headers: {

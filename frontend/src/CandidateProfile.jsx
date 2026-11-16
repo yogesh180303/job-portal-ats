@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import "./CandidateProfile.css";
+import API_BASE_URL from "./api";
 
 const INITIAL_PROFILE = {
   full_name: "",
@@ -10,7 +11,7 @@ const INITIAL_PROFILE = {
   skills: "",
 };
 
-const API_URL = "http://127.0.0.1:8000/api/auth/profile/";
+const API_URL = `${API_BASE_URL}/auth/profile/`;
 const SUMMARY_MAX_LENGTH = 1000;
 
 function CandidateProfile() {
